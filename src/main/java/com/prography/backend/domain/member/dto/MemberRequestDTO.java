@@ -1,13 +1,8 @@
-package com.prography.backend.domain.dto.member;
+package com.prography.backend.domain.member.dto;
 
-import com.prography.backend.global.common.enums.MemberRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 public class MemberRequestDTO {
 
