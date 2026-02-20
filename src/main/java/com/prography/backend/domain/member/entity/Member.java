@@ -1,4 +1,4 @@
-package com.prography.backend.domain.entity.member;
+package com.prography.backend.domain.member.entity;
 
 import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.global.common.enums.MemberRole;
