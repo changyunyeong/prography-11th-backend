@@ -61,4 +61,11 @@ public class AdminMemberController {
         MemberResponseDTO.MemberResultDTO response = memberService.updateMember(memberId, request);
         return ApiResponse.success(response);
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "회원 탈퇴", description = "회원 정보를 삭제합니다. 회원을 Soft-delete 처리합니다. 실제 삭제가 아닌 상태를 WITHDRAWN으로 변경합니다.")
+    public ApiResponse<MemberResponseDTO.MemberDeleteDTO> deleteMember(@PathVariable("id") Long memberId) {
+        MemberResponseDTO.MemberDeleteDTO response = memberService.deleteMember(memberId);
+        return ApiResponse.success(response);
+    }
 }

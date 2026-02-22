@@ -253,6 +253,21 @@ public class MemberService {
         return MemberResponseDTO.MemberResultDTO.from(member, responseCohortMember);
     }
 
+    public MemberResponseDTO.MemberDeleteDTO deleteMember(Long memberId) {
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (member.getStatus() == MemberStatus.WITHDRAWN) {
+            throw new ApiException(ErrorCode.MEMBER_ALREADY_WITHDRAWN);
+        }
+
+        member.updateStatus(MemberStatus.WITHDRAWN);
+        member = memberRepository.saveAndFlush(member);
+
+        return MemberResponseDTO.MemberDeleteDTO.from(member);
+    }
+
     private void validateDashboardRequest(int page, int size, String searchType, String searchValue) {
         if (page < 0 || size <= 0) {
             throw new ApiException(ErrorCode.INVALID_REQUEST);
