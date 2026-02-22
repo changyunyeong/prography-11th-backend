@@ -10,13 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin Member", description = "admin member API")
 @RestController
@@ -28,9 +22,9 @@ public class AdminMemberController {
 
     @PostMapping
     @Operation(summary = "회원 등록", description = "신규 회원을 등록하고, 기수에 배정하며, 보증금을 초기화합니다.")
-    public ApiResponse<MemberResponseDTO.MemberCreateResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
+    public ApiResponse<MemberResponseDTO.MemberResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
 
-        MemberResponseDTO.MemberCreateResultDTO response = memberService.createMember(request);
+        MemberResponseDTO.MemberResultDTO response = memberService.createMember(request);
         return ApiResponse.success(response);
     }
 
@@ -50,6 +44,13 @@ public class AdminMemberController {
         MemberResponseDTO.MemberDashboardPreViewListDTO response = memberService.getMemberDashboard(
                 page, size, searchType, searchValue, generation, partName, teamName, status
         );
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "회원 상세 조회", description = "회원의 상세 정보를 기수/파트/팀 정보와 함께 조회합니다.")
+    public ApiResponse<MemberResponseDTO.MemberResultDTO> getMemberDetail(@PathVariable("id") Long memberId) {
+        MemberResponseDTO.MemberResultDTO response = memberService.getMemberDetail(memberId);
         return ApiResponse.success(response);
     }
 }

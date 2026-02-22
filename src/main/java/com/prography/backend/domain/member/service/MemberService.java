@@ -56,7 +56,7 @@ public class MemberService {
     private final DepositService depositService;
     private final CurrentCohortProvider currentCohortProvider;
 
-    public MemberResponseDTO.MemberCreateResultDTO createMember(MemberRequestDTO.CreateMemberRequestDTO request) {
+    public MemberResponseDTO.MemberResultDTO createMember(MemberRequestDTO.CreateMemberRequestDTO request) {
 
         // loginId 중복 검사
         if (memberRepository.existsByLoginId(request.getLoginId())) {
@@ -109,7 +109,7 @@ public class MemberService {
         // DepositHistory 생성 (type=INITIAL, amount=100,000원)
         depositService.initializeDeposit(cohortMember, INITIAL_DEPOSIT, "초기 보증금 설정");
 
-        return MemberResponseDTO.MemberCreateResultDTO.from(member, cohortMember);
+        return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
     }
 
     @Transactional(readOnly = true)
@@ -180,6 +180,18 @@ public class MemberService {
                 .totalElements((long) totalElements)
                 .totalPages(totalPages)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public MemberResponseDTO.MemberResultDTO getMemberDetail(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(
+                        currentCohortProvider.getCurrentCohort().getId(), member.getId())
+                .orElse(null);
+
+        return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
     }
 
     private void validateDashboardRequest(int page, int size, String searchType, String searchValue) {

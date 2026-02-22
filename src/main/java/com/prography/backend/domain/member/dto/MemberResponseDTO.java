@@ -16,7 +16,7 @@ public class MemberResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberCreateResultDTO {
+    public static class MemberResultDTO {
         private Long id;
         private String loginId;
         private String name;
@@ -29,17 +29,17 @@ public class MemberResponseDTO {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public static MemberCreateResultDTO from(Member member, CohortMember cohortMember) {
-            return MemberCreateResultDTO.builder()
+        public static MemberResultDTO from(Member member, CohortMember cohortMember) {
+            return MemberResultDTO.builder()
                 .id(member.getId())
                 .loginId(member.getLoginId())
                 .name(member.getName())
                 .phone(member.getPhone())
                 .status(member.getStatus().name())
                 .role(member.getRole().name())
-                .generation(cohortMember.getCohort().getGeneration())
-                .partName(cohortMember.getPart() != null ? cohortMember.getPart().getType().name() : null)
-                .teamName(cohortMember.getTeam() != null ? cohortMember.getTeam().getName() : null)
+                .generation(cohortMember != null ? cohortMember.getCohort().getGeneration() : null)
+                .partName(cohortMember != null && cohortMember.getPart() != null ? cohortMember.getPart().getType().name() : null)
+                .teamName(cohortMember != null && cohortMember.getTeam() != null ? cohortMember.getTeam().getName() : null)
                 .createdAt(member.getCreatedAt())
                 .updatedAt(member.getUpdatedAt())
                 .build();
