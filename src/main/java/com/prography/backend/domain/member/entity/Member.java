@@ -38,4 +38,12 @@ public class Member extends BaseEntity {
     @Column(nullable = false, length = 20)
     private MemberStatus status;
 
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updatePhone(String phone) {
+        this.phone = phone;
+    }
+
 }

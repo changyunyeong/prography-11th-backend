@@ -53,4 +53,12 @@ public class AdminMemberController {
         MemberResponseDTO.MemberResultDTO response = memberService.getMemberDetail(memberId);
         return ApiResponse.success(response);
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "회원 수정", description = "회원 정보를 수정합니다. 모든 필드는 optional이며, 전달된 필드만 수정됩니다.")
+    public ApiResponse<MemberResponseDTO.MemberResultDTO> updateMember(@PathVariable("id") Long memberId,
+                                                        @Valid @RequestBody MemberRequestDTO.UpdateMemberRequestDTO request) {
+        MemberResponseDTO.MemberResultDTO response = memberService.updateMember(memberId, request);
+        return ApiResponse.success(response);
+    }
 }

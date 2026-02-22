@@ -5,6 +5,7 @@ import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.cohort.entity.Part;
 import com.prography.backend.domain.cohort.entity.Team;
 import com.prography.backend.domain.cohort.repository.CohortMemberRepository;
+import com.prography.backend.domain.cohort.repository.CohortRepository;
 import com.prography.backend.domain.cohort.repository.PartRepository;
 import com.prography.backend.domain.cohort.repository.TeamRepository;
 import com.prography.backend.domain.deposit.service.DepositService;
@@ -49,6 +50,7 @@ public class MemberService {
     );
 
     private final MemberRepository memberRepository;
+    private final CohortRepository cohortRepository;
     private final PartRepository partRepository;
     private final TeamRepository teamRepository;
     private final CohortMemberRepository cohortMemberRepository;
@@ -192,6 +194,63 @@ public class MemberService {
                 .orElse(null);
 
         return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
+    }
+
+    public MemberResponseDTO.MemberResultDTO updateMember(Long memberId, MemberRequestDTO.UpdateMemberRequestDTO request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        // name, phone은 전달 시 직접 수정
+        if (request.getName() != null) {
+            member.updateName(request.getName());
+        }
+        if (request.getPhone() != null) {
+            member.updatePhone(request.getPhone());
+        }
+
+        boolean hasCohortUpdateFields = request.getCohortId() != null
+                || request.getPartId() != null
+                || request.getTeamId() != null;
+
+        CohortMember responseCohortMember;
+        if (hasCohortUpdateFields) {
+            Cohort targetCohort = resolveTargetCohort(request.getCohortId());
+            Part targetPart = resolvePart(request.getPartId(), targetCohort);
+            Team targetTeam = resolveTeam(request.getTeamId(), targetCohort);
+
+            CohortMember cohortMember = cohortMemberRepository
+                    .findByCohortIdAndMemberId(targetCohort.getId(), member.getId())
+                    .orElse(null);
+
+            if (cohortMember == null) { // cohortId 전달 시 존재하지 않으면 새 CohortMember 생성
+                cohortMember = cohortMemberRepository.save(
+                        CohortMember.builder()
+                                .member(member)
+                                .cohort(targetCohort)
+                                .part(targetPart)
+                                .team(targetTeam)
+                                .depositBalance(0)
+                                .build()
+                );
+            } else {
+                // cohortId 전달 시 해당 기수의 CohortMember가 이미 존재하면 partId/teamId 업데이트
+                if (request.getPartId() != null) {
+                    cohortMember.updatePart(targetPart);
+                }
+                if (request.getTeamId() != null) {
+                    cohortMember.updateTeam(targetTeam);
+                }
+            }
+
+            responseCohortMember = cohortMember;
+        } else {
+            Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+            responseCohortMember = cohortMemberRepository
+                    .findByCohortIdAndMemberId(currentCohortId, member.getId())
+                    .orElse(null);
+        }
+
+        return MemberResponseDTO.MemberResultDTO.from(member, responseCohortMember);
     }
 
     private void validateDashboardRequest(int page, int size, String searchType, String searchValue) {
@@ -347,5 +406,32 @@ public class MemberService {
             return null;
         }
         return trimmedValue.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    // cohortId/partId/teamId 존재 검증
+    private Cohort resolveTargetCohort(Long cohortId) {
+        if (cohortId == null) {
+            return currentCohortProvider.getCurrentCohort();
+        }
+        return cohortRepository.findById(cohortId)
+                .orElseThrow(() -> new ApiException(ErrorCode.COHORT_NOT_FOUND));
+    }
+
+    private Part resolvePart(Long partId, Cohort cohort) {
+        if (partId == null) {
+            return null;
+        }
+        return partRepository.findById(partId)
+                .filter(value -> value.getCohort().getId().equals(cohort.getId()))
+                .orElseThrow(() -> new ApiException(ErrorCode.PART_NOT_FOUND));
+    }
+
+    private Team resolveTeam(Long teamId, Cohort cohort) {
+        if (teamId == null) {
+            return null;
+        }
+        return teamRepository.findById(teamId)
+                .filter(value -> value.getCohort().getId().equals(cohort.getId()))
+                .orElseThrow(() -> new ApiException(ErrorCode.TEAM_NOT_FOUND));
     }
 }
