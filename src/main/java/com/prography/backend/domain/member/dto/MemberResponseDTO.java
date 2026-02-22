@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class MemberResponseDTO {
 
@@ -15,7 +16,7 @@ public class MemberResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberCreateResponseDTO {
+    public static class MemberCreateResultDTO {
         private Long id;
         private String loginId;
         private String name;
@@ -28,8 +29,8 @@ public class MemberResponseDTO {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public static MemberCreateResponseDTO from(Member member, CohortMember cohortMember) {
-            return MemberCreateResponseDTO.builder()
+        public static MemberCreateResultDTO from(Member member, CohortMember cohortMember) {
+            return MemberCreateResultDTO.builder()
                 .id(member.getId())
                 .loginId(member.getLoginId())
                 .name(member.getName())
@@ -43,6 +44,53 @@ public class MemberResponseDTO {
                 .updatedAt(member.getUpdatedAt())
                 .build();
         }
+    }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberDashboardPreViewDTO {
+        private Long id;
+        private String loginId;
+        private String name;
+        private String phone;
+        private String status;
+        private String role;
+        private Integer generation;
+        private String partName;
+        private String teamName;
+        private Integer deposit;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public static MemberDashboardPreViewDTO from(Member member, CohortMember cohortMember) {
+            return MemberDashboardPreViewDTO.builder()
+                    .id(member.getId())
+                    .loginId(member.getLoginId())
+                    .name(member.getName())
+                    .phone(member.getPhone())
+                    .status(member.getStatus().name())
+                    .role(member.getRole().name())
+                    .generation(cohortMember != null ? cohortMember.getCohort().getGeneration() : null)
+                    .partName(cohortMember != null && cohortMember.getPart() != null ? cohortMember.getPart().getType().name() : null)
+                    .teamName(cohortMember != null && cohortMember.getTeam() != null ? cohortMember.getTeam().getName() : null)
+                    .deposit(cohortMember != null ? cohortMember.getDepositBalance() : null)
+                    .createdAt(member.getCreatedAt())
+                    .updatedAt(member.getUpdatedAt())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberDashboardPreViewListDTO {
+        private List<MemberDashboardPreViewDTO> content;
+        private int page;
+        private int size;
+        private Long totalElements;
+        private Integer totalPages;
     }
 }
