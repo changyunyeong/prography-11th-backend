@@ -9,4 +9,5 @@ import java.util.Optional;
 
 public interface PartRepository extends JpaRepository<Part, Long> {
     Optional<Part> findByCohortIdAndType(Long cohortId, PartType type);
+    List<Part> findAllByCohortIdOrderByIdAsc(Long cohortId);
 }

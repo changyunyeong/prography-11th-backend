@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByCohortIdAndName(Long cohortId, String name);
+    List<Team> findAllByCohortIdOrderByIdAsc(Long cohortId);
 }
