@@ -44,7 +44,6 @@ public class SessionService {
     private final AttendanceRepository attendanceRepository;
     private final QrCodeRepository qrCodeRepository;
     private final CurrentCohortProvider currentCohortProvider;
-    private final Clock clock;
 
     public SessionResponseDTO.SessionResultDTO createSession(SessionRequestDTO.CreateSessionRequestDTO request) {
         Cohort cohort = currentCohortProvider.getCurrentCohort();
@@ -60,7 +59,7 @@ public class SessionService {
                 .build();
         session = clubSessionRepository.save(session);
 
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.now();
         QrCode qrCode = QrCode.builder()
                 .session(session)
                 .hashValue(UUID.randomUUID().toString())
@@ -105,7 +104,7 @@ public class SessionService {
             }
         }
 
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.now();
         Set<Long> activeQrSessionIds = qrCodeRepository.findActiveBySessionIdIn(sessionIds, now).stream()
                 .map(QrCode::getSession)
                 .map(ClubSession::getId)
@@ -166,7 +165,7 @@ public class SessionService {
             throw new ApiException(ErrorCode.SESSION_ALREADY_CANCELLED);
         }
 
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.now();
         List<QrCode> activeQrCodes = qrCodeRepository.findActiveBySessionId(sessionId, now);
         for (QrCode qrCode : activeQrCodes) {
             qrCode.revoke(now);
@@ -178,6 +177,26 @@ public class SessionService {
         SessionResponseDTO.AttendanceSummaryDTO attendanceSummary = getAttendanceSummary(session.getId());
 
         return SessionResponseDTO.SessionResultDTO.from(session, attendanceSummary, false);
+    }
+
+    public SessionResponseDTO.QrCodeResultDTO createQrCode(Long sessionId) {
+        // 일정 존재 검증
+        ClubSession session = clubSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (!qrCodeRepository.findActiveBySessionId(sessionId, now).isEmpty()) {
+            throw new ApiException(ErrorCode.QR_ALREADY_ACTIVE); // 해당 일정에 활성(expiresAt > 현재시각) QR 코드가 있으면 중복 생성 불가
+        }
+
+        QrCode qrCode = QrCode.builder()
+                .session(session)
+                .hashValue(UUID.randomUUID().toString()) // UUID 기반 hashValue 생성
+                .expiresAt(now.plusHours(24)) // 유효기간: 생성 시각 + 24시간
+                .build();
+        qrCode = qrCodeRepository.saveAndFlush(qrCode);
+
+        return SessionResponseDTO.QrCodeResultDTO.from(qrCode);
     }
 
     private LocalTime parseRequestTime(String rawTime) {
@@ -208,7 +227,7 @@ public class SessionService {
     }
 
     private boolean isQrActive(Long sessionId) {
-        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDateTime now = LocalDateTime.now();
         return !qrCodeRepository.findActiveBySessionId(sessionId, now).isEmpty();
     }
 
@@ -227,10 +246,7 @@ public class SessionService {
         if (dateTo != null && sessionDate.isAfter(dateTo)) {
             return false;
         }
-        if (status != null && session.getStatus() != status) {
-            return false;
-        }
-        return true;
+        return status == null || session.getStatus() == status;
     }
 
     private Map<Long, AttendanceSummaryAccumulator> initializeSummaryMap(List<Long> sessionIds) {

@@ -1,5 +1,6 @@
 package com.prography.backend.domain.session.dto;
 
+import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.global.common.enums.SessionStatus;
 import lombok.AllArgsConstructor;
@@ -62,5 +63,27 @@ public class SessionResponseDTO {
         private int late;
         private int excused;
         private int total;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class QrCodeResultDTO {
+        private Long id;
+        private Long sessionId;
+        private String hashValue;
+        private LocalDateTime createdAt;
+        private LocalDateTime expiresAt;
+
+        public static QrCodeResultDTO from(QrCode qrCode) {
+            return QrCodeResultDTO.builder()
+                    .id(qrCode.getId())
+                    .sessionId(qrCode.getSession().getId())
+                    .hashValue(qrCode.getHashValue())
+                    .createdAt(qrCode.getCreatedAt())
+                    .expiresAt(qrCode.getExpiresAt())
+                    .build();
+        }
     }
 }

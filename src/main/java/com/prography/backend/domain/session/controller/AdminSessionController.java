@@ -65,4 +65,14 @@ public class AdminSessionController {
         SessionResponseDTO.SessionResultDTO response = sessionService.deleteSession(sessionId);
         return ApiResponse.success(response);
     }
+
+    @PostMapping("/{sessionId}/qrcodes")
+    @Operation(summary = "QR 코드 생성", description = "해당 일정에 새 QR 코드를 생성합니다.")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<SessionResponseDTO.QrCodeResultDTO> createQrCode(
+            @PathVariable("sessionId") Long sessionId
+    ) {
+        SessionResponseDTO.QrCodeResultDTO response = sessionService.createQrCode(sessionId);
+        return ApiResponse.success(response);
+    }
 }
