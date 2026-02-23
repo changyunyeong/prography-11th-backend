@@ -37,4 +37,18 @@ public class ClubSession extends BaseEntity {
     @Column(nullable = false, length = 20)
     private SessionStatus status;
 
+    public void updateSession(String title, LocalDateTime startsAt, String location, SessionStatus status) {
+        if (title != null) {
+            this.title = title;
+        }
+        if (startsAt != null) {
+            this.startsAt = startsAt;
+        }
+        if (location != null) {
+            this.location = location;
+        }
+        if (status != null) {
+            this.status = status;
+        }
+    }
 }

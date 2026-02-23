@@ -27,4 +27,16 @@ public class SessionRequestDTO {
         @NotBlank
         private String location;
     }
+
+    @Getter
+    public static class UpdateSessionRequestDTO {
+
+        private String title;
+        private LocalDate date;
+        @Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$")
+        @Schema(type = "string", example = "14:00", description = "HH:mm 형식")
+        private String time;
+        private String location;
+        private SessionStatus status;
+    }
 }

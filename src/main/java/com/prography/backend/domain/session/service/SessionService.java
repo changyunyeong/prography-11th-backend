@@ -33,7 +33,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional(readOnly = true)
+@Transactional
 @RequiredArgsConstructor
 public class SessionService {
 
@@ -46,7 +46,6 @@ public class SessionService {
     private final CurrentCohortProvider currentCohortProvider;
     private final Clock clock;
 
-    @Transactional
     public SessionResponseDTO.SessionResultDTO createSession(SessionRequestDTO.CreateSessionRequestDTO request) {
         Cohort cohort = currentCohortProvider.getCurrentCohort();
         LocalTime parsedTime = parseRequestTime(request.getTime());
@@ -121,6 +120,44 @@ public class SessionService {
                 .toList();
     }
 
+    public SessionResponseDTO.SessionResultDTO updateSession(
+            Long sessionId,
+            SessionRequestDTO.UpdateSessionRequestDTO request
+    ) {
+        ClubSession session = clubSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+
+        if (session.getStatus() == SessionStatus.CANCELLED) {
+            throw new ApiException(ErrorCode.SESSION_ALREADY_CANCELLED);
+        }
+
+        LocalDateTime startAt = null;
+        if (request.getDate() != null || request.getTime() != null) {
+            LocalDate targetDate = request.getDate() != null
+                    ? request.getDate()
+                    : session.getStartsAt().toLocalDate();
+
+            LocalTime targetTime = request.getTime() != null
+                    ? parseRequestTime(request.getTime())
+                    : session.getStartsAt().toLocalTime();
+
+            startAt = LocalDateTime.of(targetDate, targetTime);
+        }
+
+        session.updateSession(
+                request.getTitle(),
+                startAt,
+                request.getLocation(),
+                request.getStatus()
+        );
+        session = clubSessionRepository.saveAndFlush(session);
+
+        SessionResponseDTO.AttendanceSummaryDTO attendanceSummary = getAttendanceSummary(session.getId());
+        boolean qrActive = isQrActive(session.getId());
+
+        return SessionResponseDTO.SessionResultDTO.from(session, attendanceSummary, qrActive);
+    }
+
     private LocalTime parseRequestTime(String rawTime) {
         try {
             return LocalTime.parse(rawTime, REQUEST_TIME_FORMATTER);
@@ -137,6 +174,20 @@ public class SessionService {
                 .excused(0)
                 .total(0)
                 .build();
+    }
+
+    private SessionResponseDTO.AttendanceSummaryDTO getAttendanceSummary(Long sessionId) {
+        List<Attendance> attendances = attendanceRepository.findAllBySessionIdOrderByCheckedAtAsc(sessionId);
+        AttendanceSummaryAccumulator accumulator = new AttendanceSummaryAccumulator();
+        for (Attendance attendance : attendances) {
+            accumulator.add(attendance.getStatus());
+        }
+        return accumulator.toDto();
+    }
+
+    private boolean isQrActive(Long sessionId) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        return !qrCodeRepository.findActiveBySessionId(sessionId, now).isEmpty();
     }
 
     private void validateDateRange(LocalDate dateFrom, LocalDate dateTo) {

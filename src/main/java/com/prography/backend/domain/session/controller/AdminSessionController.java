@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -50,6 +52,16 @@ public class AdminSessionController {
             @RequestParam(value = "status", required = false) SessionStatus status
     ) {
         List<SessionResponseDTO.SessionResultDTO> response = sessionService.getSessionList(dateFrom, dateTo, status);
+        return ApiResponse.success(response);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "일정 수정", description = "일정 정보를 수정합니다. 모든 필드는 optional이며, 전달된 필드만 수정됩니다.")
+    public ApiResponse<SessionResponseDTO.SessionResultDTO> updateSession(
+            @PathVariable("id") Long sessionId,
+            @Valid @RequestBody SessionRequestDTO.UpdateSessionRequestDTO request
+    ) {
+        SessionResponseDTO.SessionResultDTO response = sessionService.updateSession(sessionId, request);
         return ApiResponse.success(response);
     }
 }

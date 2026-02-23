@@ -17,18 +17,6 @@ public class SessionResponseDTO {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class AttendanceSummaryDTO {
-        private int present;
-        private int absent;
-        private int late;
-        private int excused;
-        private int total;
-    }
-
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class SessionResultDTO {
         private Long id;
         private Long cohortId;
@@ -62,5 +50,17 @@ public class SessionResponseDTO {
                     .updatedAt(session.getUpdatedAt())
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AttendanceSummaryDTO {
+        private int present;
+        private int absent;
+        private int late;
+        private int excused;
+        private int total;
     }
 }
