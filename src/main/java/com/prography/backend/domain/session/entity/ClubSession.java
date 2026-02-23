@@ -51,4 +51,8 @@ public class ClubSession extends BaseEntity {
             this.status = status;
         }
     }
+
+    public void updateStatus(SessionStatus status) {
+        this.status = status;
+    }
 }

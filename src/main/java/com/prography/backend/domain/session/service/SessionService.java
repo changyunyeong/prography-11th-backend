@@ -158,6 +158,28 @@ public class SessionService {
         return SessionResponseDTO.SessionResultDTO.from(session, attendanceSummary, qrActive);
     }
 
+    public SessionResponseDTO.SessionResultDTO deleteSession(Long sessionId) {
+        ClubSession session = clubSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+
+        if (session.getStatus() == SessionStatus.CANCELLED) {
+            throw new ApiException(ErrorCode.SESSION_ALREADY_CANCELLED);
+        }
+
+        LocalDateTime now = LocalDateTime.now(clock);
+        List<QrCode> activeQrCodes = qrCodeRepository.findActiveBySessionId(sessionId, now);
+        for (QrCode qrCode : activeQrCodes) {
+            qrCode.revoke(now);
+        }
+
+        session.updateStatus(SessionStatus.CANCELLED);
+        session = clubSessionRepository.saveAndFlush(session);
+
+        SessionResponseDTO.AttendanceSummaryDTO attendanceSummary = getAttendanceSummary(session.getId());
+
+        return SessionResponseDTO.SessionResultDTO.from(session, attendanceSummary, false);
+    }
+
     private LocalTime parseRequestTime(String rawTime) {
         try {
             return LocalTime.parse(rawTime, REQUEST_TIME_FORMATTER);

@@ -11,15 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,6 +54,15 @@ public class AdminSessionController {
             @Valid @RequestBody SessionRequestDTO.UpdateSessionRequestDTO request
     ) {
         SessionResponseDTO.SessionResultDTO response = sessionService.updateSession(sessionId, request);
+        return ApiResponse.success(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "일정 삭제", description = "일정을 Soft-delete 처리합니다. 실제 삭제가 아닌 상태를 CANCELLED로 변경합니다.")
+    public ApiResponse<SessionResponseDTO.SessionResultDTO> deleteSession(
+            @PathVariable("id") Long sessionId
+    ) {
+        SessionResponseDTO.SessionResultDTO response = sessionService.deleteSession(sessionId);
         return ApiResponse.success(response);
     }
 }
