@@ -36,4 +36,8 @@ public class QrCode extends BaseEntity {
         this.revokedAt = revokedAt;
     }
 
+    public void expire(LocalDateTime expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
 }
