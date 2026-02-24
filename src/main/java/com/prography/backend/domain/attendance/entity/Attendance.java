@@ -55,4 +55,13 @@ public class Attendance extends BaseEntity {
     @Column(length = 500)
     private String reason;
 
+    public void updateByAdmin(AttendanceStatus status, Integer latenessMinutes, int penaltyAmount, String reason) {
+        this.status = status;
+        this.latenessMinutes = latenessMinutes;
+        this.penaltyAmount = penaltyAmount;
+        if (reason != null) {
+            this.reason = reason;
+        }
+    }
+
 }

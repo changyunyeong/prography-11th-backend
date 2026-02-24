@@ -96,6 +96,58 @@ public class AttendanceService {
         return AttendanceResponseDTO.AttendanceResultDTO.from(attendance);
     }
 
+    public AttendanceResponseDTO.AttendanceResultDTO updateAttendance(AttendanceRequestDTO.UpdateAttendanceRequestDTO request, Long attendanceId) {
+
+        Attendance attendance = attendanceRepository.findById(attendanceId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ATTENDANCE_NOT_FOUND));
+        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(
+                        currentCohortId,
+                        attendance.getMember().getId()
+                )
+                .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));
+
+        // EXCUSED 상태 전환
+        AttendanceStatus oldStatus = attendance.getStatus();
+        AttendanceStatus newStatus = request.getStatus();
+        if (oldStatus != AttendanceStatus.EXCUSED && newStatus == AttendanceStatus.EXCUSED) { // 다른 상태 → EXCUSED
+            if (cohortMember.getExcuseCount() >= EXCUSE_LIMIT) {
+                throw new ApiException(ErrorCode.EXCUSE_LIMIT_EXCEEDED);
+            }
+            cohortMember.increaseExcuseCount();
+        } else if (oldStatus == AttendanceStatus.EXCUSED && newStatus != AttendanceStatus.EXCUSED) { // EXCUSED → 다른 상태
+            if (cohortMember.getExcuseCount() > 0) {
+                cohortMember.decreaseExcuseCount();
+            }
+        }
+
+        Integer newLateMinutes = resolveLateMinutes(newStatus, request.getLateMinutes());
+        int oldPenalty = attendance.getPenaltyAmount();
+        int newPenalty = calculatePenaltyAmount(newStatus, newLateMinutes);
+        int penaltyDiff = newPenalty - oldPenalty;
+
+        if (penaltyDiff > 0) {
+            depositService.applyPenalty(
+                    cohortMember,
+                    penaltyDiff,
+                    attendance,
+                    createPenaltyAdjustmentDescription(oldStatus, newStatus, request.getReason())
+            );
+        } else if (penaltyDiff < 0) {
+            depositService.applyRefund(
+                    cohortMember,
+                    -penaltyDiff,
+                    attendance,
+                    createRefundAdjustmentDescription(oldStatus, newStatus, request.getReason())
+            );
+        }
+
+        attendance.updateByAdmin(newStatus, newLateMinutes, newPenalty, request.getReason());
+        attendance = attendanceRepository.saveAndFlush(attendance);
+        return AttendanceResponseDTO.AttendanceResultDTO.from(attendance);
+    }
+
     private Integer resolveLateMinutes(AttendanceStatus status, Integer lateMinutes) {
         if (status != AttendanceStatus.LATE) {
             return null;
@@ -125,5 +177,29 @@ public class AttendanceService {
             return "출결 패널티 차감(" + status + ")";
         }
         return "출결 패널티 차감(" + status + "): " + reason.trim();
+    }
+
+    private String createPenaltyAdjustmentDescription(
+            AttendanceStatus oldStatus,
+            AttendanceStatus newStatus,
+            String reason
+    ) {
+        String base = "출결 수정 패널티 추가차감(" + oldStatus + " -> " + newStatus + ")";
+        if (reason == null || reason.isBlank()) {
+            return base;
+        }
+        return base + ": " + reason.trim();
+    }
+
+    private String createRefundAdjustmentDescription(
+            AttendanceStatus oldStatus,
+            AttendanceStatus newStatus,
+            String reason
+    ) {
+        String base = "출결 수정 패널티 환급(" + oldStatus + " -> " + newStatus + ")";
+        if (reason == null || reason.isBlank()) {
+            return base;
+        }
+        return base + ": " + reason.trim();
     }
 }

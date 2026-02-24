@@ -45,6 +45,17 @@ public class DepositService {
         record(cohortMember, DepositType.PENALTY, amount, before, after, attendance, description);
     }
 
+    public void applyRefund(CohortMember cohortMember, int amount, Attendance attendance, String description) {
+        if (amount <= 0) {
+            return;
+        }
+
+        int before = cohortMember.getDepositBalance();
+        cohortMember.increaseDeposit(amount);
+        int after = cohortMember.getDepositBalance();
+        record(cohortMember, DepositType.REFUND, amount, before, after, attendance, description);
+    }
+
     private void record(
         CohortMember cohortMember,
         DepositType type,

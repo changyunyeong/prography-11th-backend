@@ -19,4 +19,13 @@ public class AttendanceRequestDTO {
         private Integer lateMinutes;
         private String reason;
     }
+
+    @Getter
+    public static class UpdateAttendanceRequestDTO {
+        @NotNull
+        private AttendanceStatus status;
+        @Min(0)
+        private Integer lateMinutes;
+        private String reason;
+    }
 }

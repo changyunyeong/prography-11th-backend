@@ -9,11 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin Attendance", description = "admin Attendance API")
 @RestController
@@ -28,7 +24,17 @@ public class AttendanceController {
     public ApiResponse<AttendanceResponseDTO.AttendanceResultDTO> registerAttendance(
             @Valid @RequestBody AttendanceRequestDTO.RegisterAttendanceRequestDTO request
     ) {
-        AttendanceResponseDTO.AttendanceResultDTO result = attendanceService.registerAttendance(request);
-        return ApiResponse.success(result);
+        AttendanceResponseDTO.AttendanceResultDTO response = attendanceService.registerAttendance(request);
+        return ApiResponse.success(response);
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "출결 수정", description = "기존 출결의 상태를 변경하고, 패널티 차이에 따라 보증금을 자동 조정합니다.")
+    public ApiResponse<AttendanceResponseDTO.AttendanceResultDTO> updateAttendance(
+            @Valid @RequestBody AttendanceRequestDTO.UpdateAttendanceRequestDTO request,
+            @PathVariable("id") Long attendanceId
+    ) {
+        AttendanceResponseDTO.AttendanceResultDTO response = attendanceService.updateAttendance(request, attendanceId);
+        return ApiResponse.success(response);
     }
 }

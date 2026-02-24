@@ -59,4 +59,8 @@ public class CohortMember extends BaseEntity {
         this.excuseCount++;
     }
 
+    public void decreaseExcuseCount() {
+        this.excuseCount--;
+    }
+
 }
