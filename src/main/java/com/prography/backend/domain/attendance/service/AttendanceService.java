@@ -20,6 +20,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -148,6 +153,57 @@ public class AttendanceService {
         return AttendanceResponseDTO.AttendanceResultDTO.from(attendance);
     }
 
+    @Transactional(readOnly = true)
+    public List<AttendanceResponseDTO.SessionAttendanceSummaryDTO> getSessionAttendanceSummary(Long sessionId) {
+        ClubSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+
+        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+        if (!session.getCohort().getId().equals(currentCohortId)) {
+            throw new ApiException(ErrorCode.SESSION_NOT_FOUND);
+        }
+
+        // 현재 기수(11기)의 전체 CohortMember 목록 조회
+        List<CohortMember> cohortMembers = cohortMemberRepository.findAllByCohortIdOrderByIdAsc(currentCohortId);
+        if (cohortMembers.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> cohortMemberIds = cohortMembers.stream()
+                .map(CohortMember::getId)
+                .toList();
+        List<Attendance> attendances = attendanceRepository.findAllByCohortMemberIdIn(cohortMemberIds);
+
+        Map<Long, MemberAttendanceAccumulator> summaryMap = new HashMap<>();
+        for (CohortMember cohortMember : cohortMembers) { // 각 회원의 전체 Attendance 레코드에서 상태별 count 집계
+            summaryMap.put(cohortMember.getId(), new MemberAttendanceAccumulator());
+        }
+
+        for (Attendance attendance : attendances) {
+            MemberAttendanceAccumulator accumulator = summaryMap.get(attendance.getCohortMember().getId());
+            if (accumulator != null) {
+                accumulator.add(attendance.getStatus(), attendance.getPenaltyAmount()); // totalPenalty = 전체 출결의 penaltyAmount 합계
+            }
+        }
+
+        return cohortMembers.stream()
+                .sorted(Comparator.comparing(cohortMember -> cohortMember.getMember().getId()))
+                .map(cohortMember -> {
+                    MemberAttendanceAccumulator accumulator = summaryMap.get(cohortMember.getId());
+                    return AttendanceResponseDTO.SessionAttendanceSummaryDTO.from(
+                            cohortMember.getMember().getId(),
+                            cohortMember.getMember().getName(),
+                            accumulator.present,
+                            accumulator.absent,
+                            accumulator.late,
+                            accumulator.excused,
+                            accumulator.totalPenalty, // deposit = CohortMember.deposit
+                            cohortMember.getDepositBalance()
+                    );
+                })
+                .toList();
+    }
+
     private Integer resolveLateMinutes(AttendanceStatus status, Integer lateMinutes) {
         if (status != AttendanceStatus.LATE) {
             return null;
@@ -201,5 +257,26 @@ public class AttendanceService {
             return base;
         }
         return base + ": " + reason.trim();
+    }
+
+    private static final class MemberAttendanceAccumulator {
+        private int present;
+        private int absent;
+        private int late;
+        private int excused;
+        private int totalPenalty;
+
+        private void add(AttendanceStatus status, int penaltyAmount) {
+            if (status == AttendanceStatus.PRESENT) {
+                present++;
+            } else if (status == AttendanceStatus.ABSENT) {
+                absent++;
+            } else if (status == AttendanceStatus.LATE) {
+                late++;
+            } else if (status == AttendanceStatus.EXCUSED) {
+                excused++;
+            }
+            totalPenalty += penaltyAmount;
+        }
     }
 }

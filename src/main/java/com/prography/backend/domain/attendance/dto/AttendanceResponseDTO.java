@@ -43,4 +43,41 @@ public class AttendanceResponseDTO {
         }
 
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SessionAttendanceSummaryDTO {
+        private Long memberId;
+        private String memberName;
+        private Integer present;
+        private Integer absent;
+        private Integer late;
+        private Integer excused;
+        private Integer totalPenalty;
+        private Integer deposit;
+
+        public static SessionAttendanceSummaryDTO from(
+                Long memberId,
+                String memberName,
+                int present,
+                int absent,
+                int late,
+                int excused,
+                int totalPenalty,
+                int deposit
+        ) {
+            return SessionAttendanceSummaryDTO.builder()
+                    .memberId(memberId)
+                    .memberName(memberName)
+                    .present(present)
+                    .absent(absent)
+                    .late(late)
+                    .excused(excused)
+                    .totalPenalty(totalPenalty)
+                    .deposit(deposit)
+                    .build();
+        }
+    }
 }
