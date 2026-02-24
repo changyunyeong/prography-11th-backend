@@ -109,7 +109,7 @@ public class MemberService {
         cohortMemberRepository.save(cohortMember);
 
         // DepositHistory 생성 (type=INITIAL, amount=100,000원)
-        depositService.initializeDeposit(cohortMember, INITIAL_DEPOSIT, "초기 보증금 설정");
+        depositService.initializeDeposit(cohortMember, INITIAL_DEPOSIT, "초기 보증금");
 
         return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
     }

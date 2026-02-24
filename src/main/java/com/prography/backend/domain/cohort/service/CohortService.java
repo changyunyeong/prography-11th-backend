@@ -2,11 +2,15 @@ package com.prography.backend.domain.cohort.service;
 
 import com.prography.backend.domain.cohort.dto.CohortResponseDTO;
 import com.prography.backend.domain.cohort.entity.Cohort;
+import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.cohort.entity.Part;
 import com.prography.backend.domain.cohort.entity.Team;
+import com.prography.backend.domain.cohort.repository.CohortMemberRepository;
 import com.prography.backend.domain.cohort.repository.CohortRepository;
 import com.prography.backend.domain.cohort.repository.PartRepository;
 import com.prography.backend.domain.cohort.repository.TeamRepository;
+import com.prography.backend.domain.deposit.entity.DepositHistory;
+import com.prography.backend.domain.deposit.repository.DepositHistoryRepository;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +28,10 @@ import java.util.List;
 public class CohortService {
 
     private final CohortRepository cohortRepository;
+    private final CohortMemberRepository cohortMemberRepository;
     private final PartRepository partRepository;
     private final TeamRepository teamRepository;
+    private final DepositHistoryRepository depositHistoryRepository;
 
     public List<CohortResponseDTO.CohortListDTO> getCohortList() {
         List<Cohort> cohorts = cohortRepository.findAll(Sort.by(Sort.Direction.ASC, "generation"));
@@ -42,5 +48,14 @@ public class CohortService {
         List<Team> teams = teamRepository.findAllByCohortIdOrderByIdAsc(cohortId);
 
         return CohortResponseDTO.CohortDetailDTO.from(cohort, parts, teams);
+    }
+
+    public List<CohortResponseDTO.DepositHistoryDTO> getDepositHistory(Long cohortMemberId) {
+        CohortMember cohortMember = cohortMemberRepository.findById(cohortMemberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));
+        List<DepositHistory> depositHistory = depositHistoryRepository.findAllByCohortMemberIdOrderByCreatedAtAsc(cohortMemberId);
+        return depositHistory.stream()
+                .map(CohortResponseDTO.DepositHistoryDTO::from)
+                .toList();
     }
 }

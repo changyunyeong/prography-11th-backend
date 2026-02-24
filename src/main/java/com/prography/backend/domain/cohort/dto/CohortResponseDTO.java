@@ -3,6 +3,8 @@ package com.prography.backend.domain.cohort.dto;
 import com.prography.backend.domain.cohort.entity.Cohort;
 import com.prography.backend.domain.cohort.entity.Part;
 import com.prography.backend.domain.cohort.entity.Team;
+import com.prography.backend.domain.deposit.entity.DepositHistory;
+import com.prography.backend.global.common.enums.DepositType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -99,6 +101,39 @@ public class CohortResponseDTO {
             return CohortTeamDTO.builder()
                     .id(team.getId())
                     .name(team.getName())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DepositHistoryDTO {
+        private Long id;
+        private Long cohortMemberId;
+        private DepositType type;
+        private Integer amount;
+        private Integer balanceAfter;
+        private Long attendanceId;
+        private String description;
+        private LocalDateTime createdAt;
+
+        public static DepositHistoryDTO from(DepositHistory deposit) {
+            int displayAmount = deposit.getAmount();
+            if (deposit.getType() == DepositType.PENALTY) {
+                displayAmount = -displayAmount;
+            }
+
+            return DepositHistoryDTO.builder()
+                    .id(deposit.getId())
+                    .cohortMemberId(deposit.getCohortMember().getId())
+                    .type(deposit.getType())
+                    .amount(displayAmount)
+                    .balanceAfter(deposit.getBalanceAfter())
+                    .attendanceId(deposit.getAttendance() != null ? deposit.getAttendance().getId() : null)
+                    .description(deposit.getDescription())
+                    .createdAt(deposit.getCreatedAt())
                     .build();
         }
     }

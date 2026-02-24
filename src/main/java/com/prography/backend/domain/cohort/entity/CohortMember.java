@@ -55,4 +55,12 @@ public class CohortMember extends BaseEntity {
         this.team = team;
     }
 
+    public void increaseExcuseCount() {
+        this.excuseCount++;
+    }
+
+    public void decreaseExcuseCount() {
+        this.excuseCount--;
+    }
+
 }
