@@ -204,6 +204,24 @@ public class AttendanceService {
                 .toList();
     }
 
+    public AttendanceResponseDTO.AttendanceDetailDTO getAttendanceDetail(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(
+                        currentCohortId,
+                        memberId
+                )
+                .orElse(null);
+
+        return AttendanceResponseDTO.AttendanceDetailDTO.from(
+                member,
+                cohortMember,
+                attendanceRepository.findAllByMemberIdOrderByCreatedAtAsc(memberId)
+        );
+    }
+
     private Integer resolveLateMinutes(AttendanceStatus status, Integer lateMinutes) {
         if (status != AttendanceStatus.LATE) {
             return null;
