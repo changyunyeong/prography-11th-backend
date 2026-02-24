@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface DepositHistoryRepository extends JpaRepository<DepositHistory, Long> {
     List<DepositHistory> findAllByCohortMemberIdOrderByCreatedAtDesc(Long cohortMemberId);
+    List<DepositHistory> findAllByCohortMemberIdOrderByCreatedAtAsc(Long cohortMemberId);
 }

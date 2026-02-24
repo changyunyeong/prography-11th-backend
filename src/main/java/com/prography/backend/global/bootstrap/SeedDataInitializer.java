@@ -76,7 +76,7 @@ public class SeedDataInitializer implements ApplicationRunner {
             ));
 
         if (adminCohortMember.getDepositBalance() == 0) {
-            depositService.initializeDeposit(adminCohortMember, INITIAL_DEPOSIT, "초기 보증금 설정");
+            depositService.initializeDeposit(adminCohortMember, INITIAL_DEPOSIT, "초기 보증금");
         }
     }
 

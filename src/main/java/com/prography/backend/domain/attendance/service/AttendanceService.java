@@ -95,7 +95,7 @@ public class AttendanceService {
                 cohortMember,
                 penaltyAmount,
                 attendance,
-                createPenaltyDescription(status, request.getReason())
+                createPenaltyDescription(status, penaltyAmount)
         );
 
         return AttendanceResponseDTO.AttendanceResultDTO.from(attendance);
@@ -137,14 +137,14 @@ public class AttendanceService {
                     cohortMember,
                     penaltyDiff,
                     attendance,
-                    createPenaltyAdjustmentDescription(oldStatus, newStatus, request.getReason())
+                    createPenaltyAdjustmentDescription(penaltyDiff)
             );
         } else if (penaltyDiff < 0) {
             depositService.applyRefund(
                     cohortMember,
                     -penaltyDiff,
                     attendance,
-                    createRefundAdjustmentDescription(oldStatus, newStatus, request.getReason())
+                    createRefundAdjustmentDescription(-penaltyDiff)
             );
         }
 
@@ -258,35 +258,16 @@ public class AttendanceService {
         return (int) Math.min(latePenalty, MAX_LATE_PENALTY);
     }
 
-    private String createPenaltyDescription(AttendanceStatus status, String reason) {
-        if (reason == null || reason.isBlank()) {
-            return "출결 패널티 차감(" + status + ")";
-        }
-        return "출결 패널티 차감(" + status + "): " + reason.trim();
+    private String createPenaltyDescription(AttendanceStatus status, int penaltyAmount) {
+        return "출결 등록 - " + status + " 패널티 " + penaltyAmount + "원";
     }
 
-    private String createPenaltyAdjustmentDescription(
-            AttendanceStatus oldStatus,
-            AttendanceStatus newStatus,
-            String reason
-    ) {
-        String base = "출결 수정 패널티 추가차감(" + oldStatus + " -> " + newStatus + ")";
-        if (reason == null || reason.isBlank()) {
-            return base;
-        }
-        return base + ": " + reason.trim();
+    private String createPenaltyAdjustmentDescription(int additionalPenaltyAmount) {
+        return "출결 수정 - 추가 패널티 " + additionalPenaltyAmount + "원";
     }
 
-    private String createRefundAdjustmentDescription(
-            AttendanceStatus oldStatus,
-            AttendanceStatus newStatus,
-            String reason
-    ) {
-        String base = "출결 수정 패널티 환급(" + oldStatus + " -> " + newStatus + ")";
-        if (reason == null || reason.isBlank()) {
-            return base;
-        }
-        return base + ": " + reason.trim();
+    private String createRefundAdjustmentDescription(int refundAmount) {
+        return "출결 수정 - 환급 " + refundAmount + "원";
     }
 
     private static final class MemberAttendanceAccumulator {
