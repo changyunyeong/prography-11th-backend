@@ -3,6 +3,7 @@ package com.prography.backend.domain.attendance.dto;
 import com.prography.backend.domain.attendance.entity.Attendance;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.member.entity.Member;
+import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.global.common.enums.AttendanceStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -112,6 +113,26 @@ public class AttendanceResponseDTO {
                     .deposit(cohortMember != null ? cohortMember.getDepositBalance() : null)
                     .excuseCount(cohortMember != null ? cohortMember.getExcuseCount() : null)
                     .attendances(attendances == null ? List.of() : attendances.stream()
+                            .map(AttendanceResultDTO::from)
+                            .toList())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SessionAttendanceDetailDTO {
+        private Long sessionId;
+        private String sessionTitle;
+        private List<AttendanceResultDTO> attendances;
+
+        public static SessionAttendanceDetailDTO from(ClubSession session, List<Attendance> attendances) {
+            return SessionAttendanceDetailDTO.builder()
+                    .sessionId(session.getId())
+                    .sessionTitle(session.getTitle())
+                    .attendances((attendances == null ? List.<Attendance>of() : attendances).stream()
                             .map(AttendanceResultDTO::from)
                             .toList())
                     .build();

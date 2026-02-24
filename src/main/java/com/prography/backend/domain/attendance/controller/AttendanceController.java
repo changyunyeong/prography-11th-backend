@@ -51,8 +51,18 @@ public class AttendanceController {
 
     @GetMapping("/members/{memberId}")
     @Operation(summary = "회원 출결 상세", description = "특정 회원의 기수/파트/팀 정보 + 전체 출결 기록 + 보증금/공결 정보를 조회합니다.")
-    public ApiResponse<AttendanceResponseDTO.AttendanceDetailDTO> getSessionDetail(@PathVariable("memberId") Long memberId) {
+    public ApiResponse<AttendanceResponseDTO.AttendanceDetailDTO> getAttendanceDetail(@PathVariable("memberId") Long memberId) {
         AttendanceResponseDTO.AttendanceDetailDTO response = attendanceService.getAttendanceDetail(memberId);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/sessions/{sessionId}")
+    @Operation(summary = "일정별 출결 목록", description = "출결 목록을 페이징, 필터링, 검색 조건으로 조회합니다특정 일정에 등록된 전체 출결 기록을 조회합니다.")
+    public ApiResponse<AttendanceResponseDTO.SessionAttendanceDetailDTO> getSessionAttendanceDetail(
+            @PathVariable("sessionId") Long sessionId
+    ) {
+        AttendanceResponseDTO.SessionAttendanceDetailDTO response =
+                attendanceService.getSessionAttendanceDetail(sessionId);
         return ApiResponse.success(response);
     }
 }

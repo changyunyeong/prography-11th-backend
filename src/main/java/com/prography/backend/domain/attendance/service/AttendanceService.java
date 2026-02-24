@@ -222,6 +222,18 @@ public class AttendanceService {
         );
     }
 
+    public AttendanceResponseDTO.SessionAttendanceDetailDTO getSessionAttendanceDetail(Long sessionId) {
+        ClubSession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
+        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+        if (!session.getCohort().getId().equals(currentCohortId)) {
+            throw new ApiException(ErrorCode.SESSION_NOT_FOUND);
+        }
+
+        List<Attendance> attendances = attendanceRepository.findAllBySessionIdOrderByCheckedAtAsc(sessionId);
+        return AttendanceResponseDTO.SessionAttendanceDetailDTO.from(session, attendances);
+    }
+
     private Integer resolveLateMinutes(AttendanceStatus status, Integer lateMinutes) {
         if (status != AttendanceStatus.LATE) {
             return null;
