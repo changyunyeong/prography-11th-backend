@@ -145,4 +145,38 @@ public class MemberResponseDTO {
                     .build();
         }
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AttendanceSummaryDTO {
+        private Long memberId;
+        private Integer present;
+        private Integer absent;
+        private Integer late;
+        private Integer excused;
+        private Integer totalPenalty;
+        private Integer deposit;
+
+        public static AttendanceSummaryDTO of(
+                Long memberId,
+                int present,
+                int absent,
+                int late,
+                int excused,
+                int totalPenalty,
+                Integer deposit
+        ) {
+            return AttendanceSummaryDTO.builder()
+                    .memberId(memberId)
+                    .present(present)
+                    .absent(absent)
+                    .late(late)
+                    .excused(excused)
+                    .totalPenalty(totalPenalty)
+                    .deposit(deposit)
+                    .build();
+        }
+    }
 }

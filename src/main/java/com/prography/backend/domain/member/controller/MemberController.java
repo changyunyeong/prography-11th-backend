@@ -33,4 +33,13 @@ public class MemberController {
         MemberResponseDTO.MemberResultDTO response = memberService.getMemberInfo(memberId);
         return ApiResponse.success(response);
     }
+
+    @GetMapping("/members/{memberId}/attendance-summary")
+    @Operation(summary = "내 출결 요약 조회", description = "특정 회원의 출결 통계와 보증금 잔액을 조회합니다.")
+    public ApiResponse<MemberResponseDTO.AttendanceSummaryDTO> getAttendanceSummary(
+            @PathVariable("memberId") Long memberId
+    ) {
+        MemberResponseDTO.AttendanceSummaryDTO response = memberService.getAttendanceSummary(memberId);
+        return ApiResponse.success(response);
+    }
 }
