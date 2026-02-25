@@ -2,7 +2,6 @@ package com.prography.backend.domain.attendance.controller;
 
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.dto.AttendanceResponseDTO;
-import com.prography.backend.domain.attendance.service.AdminAttendanceService;
 import com.prography.backend.domain.attendance.service.AttendanceService;
 import com.prography.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Attendance", description = "Attendance API")
 @RestController
@@ -27,6 +28,15 @@ public class AttendanceController {
             @Valid @RequestBody AttendanceRequestDTO.CheckAttendanceRequestDTO request
     ) {
         AttendanceResponseDTO.AttendanceResultDTO response = attendanceService.checkAttendance(request);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping
+    @Operation(summary = "내 출결 기록 조회", description = "특정 회원의 전체 출결 기록을 조회합니다.")
+    public ApiResponse<List<AttendanceResponseDTO.AttendanceHistoryDTO>> getAttendances(
+            @RequestParam("memberId") Long memberId
+    ) {
+        List<AttendanceResponseDTO.AttendanceHistoryDTO> response = attendanceService.getAttendances(memberId);
         return ApiResponse.success(response);
     }
 }

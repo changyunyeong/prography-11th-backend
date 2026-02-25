@@ -138,4 +138,34 @@ public class AttendanceResponseDTO {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AttendanceHistoryDTO {
+        private Long id;
+        private Long sessionId;
+        private String sessionTitle;
+        private AttendanceStatus status;
+        private Integer lateMinutes;
+        private Integer penaltyAmount;
+        private String reason;
+        private Instant checkedInAt;
+        private Instant createdAt;
+
+        public static AttendanceHistoryDTO from(Attendance attendance) {
+            return AttendanceHistoryDTO.builder()
+                    .id(attendance.getId())
+                    .sessionId(attendance.getSession().getId())
+                    .sessionTitle(attendance.getSession().getTitle())
+                    .status(attendance.getStatus())
+                    .lateMinutes(attendance.getLatenessMinutes())
+                    .penaltyAmount(attendance.getPenaltyAmount())
+                    .reason(attendance.getReason())
+                    .checkedInAt(attendance.getCheckedAt())
+                    .createdAt(attendance.getCreatedAt())
+                    .build();
+        }
+    }
 }

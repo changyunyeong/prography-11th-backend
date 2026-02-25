@@ -11,7 +11,6 @@ import com.prography.backend.domain.member.entity.Member;
 import com.prography.backend.domain.member.repository.MemberRepository;
 import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.qrcode.repository.QrCodeRepository;
-import com.prography.backend.domain.session.repository.ClubSessionRepository;
 import com.prography.backend.global.common.enums.AttendanceSource;
 import com.prography.backend.global.common.enums.AttendanceStatus;
 import com.prography.backend.global.common.enums.MemberStatus;
@@ -27,6 +26,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 @Service
 @Transactional
@@ -129,6 +129,16 @@ public class AttendanceService {
         );
 
         return AttendanceResponseDTO.AttendanceResultDTO.from(attendance);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AttendanceResponseDTO.AttendanceHistoryDTO> getAttendances(Long memberId) {
+        memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return attendanceRepository.findAllByMemberIdOrderByCreatedAtAsc(memberId).stream()
+                .map(AttendanceResponseDTO.AttendanceHistoryDTO::from)
+                .toList();
     }
 
     private int calculatePenaltyAmount(AttendanceStatus status, Integer lateMinutes) {
