@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class AdminAttendanceController {
     private final AdminAttendanceService adminAttendanceService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "출결 등록", description = "관리자가 수동으로 출결을 등록합니다.")
     public ApiResponse<AttendanceResponseDTO.AttendanceResultDTO> registerAttendance(
             @Valid @RequestBody AttendanceRequestDTO.RegisterAttendanceRequestDTO request

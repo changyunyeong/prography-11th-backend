@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Admin Member", description = "admin member API")
@@ -20,6 +21,7 @@ public class AdminMemberController {
     private final AdminMemberService adminMemberService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "회원 등록", description = "신규 회원을 등록하고, 기수에 배정하며, 보증금을 초기화합니다.")
     public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
 
