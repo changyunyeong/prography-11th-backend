@@ -20,10 +20,17 @@ public class MemberController {
 
     @PostMapping("/auth/login")
     @Operation(summary = "로그인", description = "loginId와 password로 회원 인증을 수행합니다. 토큰을 발급하지 않으며, 비밀번호 검증 결과만 반환합니다.")
-    public ApiResponse<MemberResponseDTO.MemberLoginDTO> login(
+    public ApiResponse<MemberResponseDTO.MemberResultDTO> login(
             @Valid @RequestBody MemberRequestDTO.LoginRequestDTO request
             ) {
-        MemberResponseDTO.MemberLoginDTO response = memberService.login(request);
+        MemberResponseDTO.MemberResultDTO response = memberService.login(request);
+        return ApiResponse.success(response);
+    }
+
+    @GetMapping("/members/{id}")
+    @Operation(summary = "회원 조회", description = "회원의 기본 정보를 조회합니다.")
+    public ApiResponse<MemberResponseDTO.MemberResultDTO> getMemberInfo(@PathVariable("id") Long memberId) {
+        MemberResponseDTO.MemberResultDTO response = memberService.getMemberInfo(memberId);
         return ApiResponse.success(response);
     }
 }

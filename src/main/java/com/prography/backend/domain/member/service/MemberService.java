@@ -22,7 +22,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public MemberResponseDTO.MemberLoginDTO login(MemberRequestDTO.LoginRequestDTO request) {
+    public MemberResponseDTO.MemberResultDTO login(MemberRequestDTO.LoginRequestDTO request) {
 
         // loginId로 회원 조회 → 없으면 LOGIN_FAILED
         // BCrypt 비밀번호 검증 → 불일치 시 LOGIN_FAILED
@@ -37,6 +37,13 @@ public class MemberService {
             throw new ApiException(ErrorCode.MEMBER_WITHDRAWN);
         }
 
-        return MemberResponseDTO.MemberLoginDTO.from(member);
+        return MemberResponseDTO.MemberResultDTO.from(member);
+    }
+
+    public MemberResponseDTO.MemberResultDTO getMemberInfo(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return MemberResponseDTO.MemberResultDTO.from(member);
     }
 }

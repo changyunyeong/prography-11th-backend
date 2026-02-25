@@ -58,7 +58,7 @@ public class AdminMemberService {
     private final DepositService depositService;
     private final CurrentCohortProvider currentCohortProvider;
 
-    public MemberResponseDTO.MemberResultDTO createMember(MemberRequestDTO.CreateMemberRequestDTO request) {
+    public MemberResponseDTO.MemberAdminResultDTO createMember(MemberRequestDTO.CreateMemberRequestDTO request) {
 
         // loginId 중복 검사
         if (memberRepository.existsByLoginId(request.getLoginId())) {
@@ -111,7 +111,7 @@ public class AdminMemberService {
         // DepositHistory 생성 (type=INITIAL, amount=100,000원)
         depositService.initializeDeposit(cohortMember, INITIAL_DEPOSIT, "초기 보증금");
 
-        return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
+        return MemberResponseDTO.MemberAdminResultDTO.from(member, cohortMember);
     }
 
     @Transactional(readOnly = true)
@@ -185,7 +185,7 @@ public class AdminMemberService {
     }
 
     @Transactional(readOnly = true)
-    public MemberResponseDTO.MemberResultDTO getMemberDetail(Long memberId) {
+    public MemberResponseDTO.MemberAdminResultDTO getMemberDetail(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -193,10 +193,10 @@ public class AdminMemberService {
                         currentCohortProvider.getCurrentCohort().getId(), member.getId())
                 .orElse(null);
 
-        return MemberResponseDTO.MemberResultDTO.from(member, cohortMember);
+        return MemberResponseDTO.MemberAdminResultDTO.from(member, cohortMember);
     }
 
-    public MemberResponseDTO.MemberResultDTO updateMember(Long memberId, MemberRequestDTO.UpdateMemberRequestDTO request) {
+    public MemberResponseDTO.MemberAdminResultDTO updateMember(Long memberId, MemberRequestDTO.UpdateMemberRequestDTO request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -250,7 +250,7 @@ public class AdminMemberService {
                     .orElse(null);
         }
 
-        return MemberResponseDTO.MemberResultDTO.from(member, responseCohortMember);
+        return MemberResponseDTO.MemberAdminResultDTO.from(member, responseCohortMember);
     }
 
     public MemberResponseDTO.MemberDeleteDTO deleteMember(Long memberId) {

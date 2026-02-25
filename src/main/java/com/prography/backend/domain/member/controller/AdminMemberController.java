@@ -21,9 +21,9 @@ public class AdminMemberController {
 
     @PostMapping
     @Operation(summary = "회원 등록", description = "신규 회원을 등록하고, 기수에 배정하며, 보증금을 초기화합니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
 
-        MemberResponseDTO.MemberResultDTO response = adminMemberService.createMember(request);
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.createMember(request);
         return ApiResponse.success(response);
     }
 
@@ -48,16 +48,16 @@ public class AdminMemberController {
 
     @GetMapping("/{id}")
     @Operation(summary = "회원 상세 조회", description = "회원의 상세 정보를 기수/파트/팀 정보와 함께 조회합니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> getMemberDetail(@PathVariable("id") Long memberId) {
-        MemberResponseDTO.MemberResultDTO response = adminMemberService.getMemberDetail(memberId);
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> getMemberDetail(@PathVariable("id") Long memberId) {
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.getMemberDetail(memberId);
         return ApiResponse.success(response);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "회원 수정", description = "회원 정보를 수정합니다. 모든 필드는 optional이며, 전달된 필드만 수정됩니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> updateMember(@PathVariable("id") Long memberId,
-                                                        @Valid @RequestBody MemberRequestDTO.UpdateMemberRequestDTO request) {
-        MemberResponseDTO.MemberResultDTO response = adminMemberService.updateMember(memberId, request);
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> updateMember(@PathVariable("id") Long memberId,
+                                                                            @Valid @RequestBody MemberRequestDTO.UpdateMemberRequestDTO request) {
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.updateMember(memberId, request);
         return ApiResponse.success(response);
     }
 

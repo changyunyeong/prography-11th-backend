@@ -18,7 +18,7 @@ public class MemberResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberResultDTO {
+    public static class MemberAdminResultDTO {
         private Long id;
         private String loginId;
         private String name;
@@ -31,8 +31,8 @@ public class MemberResponseDTO {
         private Instant createdAt;
         private Instant updatedAt;
 
-        public static MemberResultDTO from(Member member, CohortMember cohortMember) {
-            return MemberResultDTO.builder()
+        public static MemberAdminResultDTO from(Member member, CohortMember cohortMember) {
+            return MemberAdminResultDTO.builder()
                 .id(member.getId())
                 .loginId(member.getLoginId())
                 .name(member.getName())
@@ -122,7 +122,7 @@ public class MemberResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberLoginDTO {
+    public static class MemberResultDTO {
         private Long id;
         private String loginId;
         private String name;
@@ -132,8 +132,8 @@ public class MemberResponseDTO {
         private Instant createdAt;
         private Instant updatedAt;
 
-        public static MemberLoginDTO from(Member member) {
-            return MemberLoginDTO.builder()
+        public static MemberResultDTO from(Member member) {
+            return MemberResultDTO.builder()
                     .id(member.getId())
                     .loginId(member.getLoginId())
                     .name(member.getName())
