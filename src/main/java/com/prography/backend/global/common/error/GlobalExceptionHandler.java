@@ -21,14 +21,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException exception) {
         FieldError fieldError = exception.getBindingResult().getFieldErrors().stream().findFirst().orElse(null);
         String message = fieldError == null
-            ? ErrorCode.INVALID_REQUEST.getMessage()
+            ? ErrorCode.INVALID_INPUT.getMessage()
             : fieldError.getField() + ": " + fieldError.getDefaultMessage();
-        return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.INVALID_REQUEST.getCode(), message));
+        return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.INVALID_INPUT.getCode(), message));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException exception) {
-        return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.INVALID_REQUEST.getCode(), exception.getMessage()));
+        return ResponseEntity.badRequest().body(ApiResponse.error(ErrorCode.INVALID_INPUT.getCode(), exception.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
