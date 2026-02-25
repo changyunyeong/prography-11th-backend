@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -23,13 +24,13 @@ public class QrCodeService {
         QrCode currentQrCode = qrCodeRepository.findById(qrCodeId)
                 .orElseThrow(() -> new ApiException(ErrorCode.QR_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         currentQrCode.expire(now); // 기존 QR 코드의 expiresAt을 현재 시각으로 설정 (즉시 만료)
 
         QrCode renewedQrCode = QrCode.builder()
                 .session(currentQrCode.getSession())
                 .hashValue(UUID.randomUUID().toString())
-                .expiresAt(now.plusHours(24)) // 동일 sessionId로 새 QR 코드 생성 (UUID hashValue, 24시간 유효)
+                .expiresAt(now.plus(24, ChronoUnit.HOURS)) // 동일 sessionId로 새 QR 코드 생성 (UUID hashValue, 24시간 유효)
                 .build();
         renewedQrCode = qrCodeRepository.saveAndFlush(renewedQrCode);
 

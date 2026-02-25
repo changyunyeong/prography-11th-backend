@@ -32,4 +32,12 @@ public class MemberRequestDTO {
         private Long partId;
         private Long teamId;
     }
+
+    @Getter
+    public static class LoginRequestDTO {
+        @NotBlank
+        private String loginId;
+        @NotBlank
+        private String password;
+    }
 }

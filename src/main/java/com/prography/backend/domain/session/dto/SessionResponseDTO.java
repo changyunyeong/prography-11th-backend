@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,8 +29,8 @@ public class SessionResponseDTO {
         private SessionStatus status;
         private AttendanceSummaryDTO attendanceSummary;
         private Boolean qrActive;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static SessionResultDTO from(
                 ClubSession session,
@@ -73,8 +74,8 @@ public class SessionResponseDTO {
         private Long id;
         private Long sessionId;
         private String hashValue;
-        private LocalDateTime createdAt;
-        private LocalDateTime expiresAt;
+        private Instant createdAt;
+        private Instant expiresAt;
 
         public static QrCodeResultDTO from(QrCode qrCode) {
             return QrCodeResultDTO.builder()
@@ -83,6 +84,35 @@ public class SessionResponseDTO {
                     .hashValue(qrCode.getHashValue())
                     .createdAt(qrCode.getCreatedAt())
                     .expiresAt(qrCode.getExpiresAt())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SessionInfoDTO {
+        private Long id;
+        private String title;
+        private LocalDate date;
+        private LocalTime time;
+        private String location;
+        private SessionStatus status;
+        private Instant createdAt;
+        private Instant updatedAt;
+
+        public static SessionInfoDTO from(ClubSession session) {
+            LocalDateTime startsAt = session.getStartsAt();
+            return SessionInfoDTO.builder()
+                    .id(session.getId())
+                    .title(session.getTitle())
+                    .date(startsAt.toLocalDate())
+                    .time(startsAt.toLocalTime())
+                    .location(session.getLocation())
+                    .status(session.getStatus())
+                    .createdAt(session.getCreatedAt())
+                    .updatedAt(session.getUpdatedAt())
                     .build();
         }
     }

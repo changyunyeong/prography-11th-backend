@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class QrCodeResponseDTO {
 
@@ -18,8 +18,8 @@ public class QrCodeResponseDTO {
         private Long id;
         private Long sessionId;
         private String hashValue;
-        private LocalDateTime createdAt;
-        private LocalDateTime expiresAt;
+        private Instant createdAt;
+        private Instant expiresAt;
 
         public static QrCodeResponseDTO.QrCodeRenewDTO from(QrCode qrCode) {
             return QrCodeResponseDTO.QrCodeRenewDTO.builder()

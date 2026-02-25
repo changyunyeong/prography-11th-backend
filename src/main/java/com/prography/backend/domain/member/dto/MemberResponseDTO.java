@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class MemberResponseDTO {
@@ -18,7 +18,7 @@ public class MemberResponseDTO {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class MemberResultDTO {
+    public static class MemberAdminResultDTO {
         private Long id;
         private String loginId;
         private String name;
@@ -28,11 +28,11 @@ public class MemberResponseDTO {
         private Integer generation;
         private String partName;
         private String teamName;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
-        public static MemberResultDTO from(Member member, CohortMember cohortMember) {
-            return MemberResultDTO.builder()
+        public static MemberAdminResultDTO from(Member member, CohortMember cohortMember) {
+            return MemberAdminResultDTO.builder()
                 .id(member.getId())
                 .loginId(member.getLoginId())
                 .name(member.getName())
@@ -63,8 +63,8 @@ public class MemberResponseDTO {
         private String partName;
         private String teamName;
         private Integer deposit;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static MemberDashboardPreViewDTO from(Member member, CohortMember cohortMember) {
             return MemberDashboardPreViewDTO.builder()
@@ -105,7 +105,7 @@ public class MemberResponseDTO {
         private String loginId;
         private String name;
         private MemberStatus status;
-        private LocalDateTime updatedAt;
+        private Instant updatedAt;
 
         public static MemberDeleteDTO from(Member member) {
             return MemberDeleteDTO.builder()
@@ -114,6 +114,68 @@ public class MemberResponseDTO {
                     .name(member.getName())
                     .status(member.getStatus())
                     .updatedAt(member.getUpdatedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberResultDTO {
+        private Long id;
+        private String loginId;
+        private String name;
+        private String phone;
+        private MemberStatus status;
+        private MemberRole role;
+        private Instant createdAt;
+        private Instant updatedAt;
+
+        public static MemberResultDTO from(Member member) {
+            return MemberResultDTO.builder()
+                    .id(member.getId())
+                    .loginId(member.getLoginId())
+                    .name(member.getName())
+                    .phone(member.getPhone())
+                    .status(member.getStatus())
+                    .role(member.getRole())
+                    .createdAt(member.getCreatedAt())
+                    .updatedAt(member.getUpdatedAt())
+                    .build();
+        }
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AttendanceSummaryDTO {
+        private Long memberId;
+        private Integer present;
+        private Integer absent;
+        private Integer late;
+        private Integer excused;
+        private Integer totalPenalty;
+        private Integer deposit;
+
+        public static AttendanceSummaryDTO of(
+                Long memberId,
+                int present,
+                int absent,
+                int late,
+                int excused,
+                int totalPenalty,
+                Integer deposit
+        ) {
+            return AttendanceSummaryDTO.builder()
+                    .memberId(memberId)
+                    .present(present)
+                    .absent(absent)
+                    .late(late)
+                    .excused(excused)
+                    .totalPenalty(totalPenalty)
+                    .deposit(deposit)
                     .build();
         }
     }

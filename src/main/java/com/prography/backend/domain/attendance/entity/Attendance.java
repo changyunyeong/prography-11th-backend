@@ -3,13 +3,14 @@ package com.prography.backend.domain.attendance.entity;
 import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.member.entity.Member;
+import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.global.common.enums.AttendanceSource;
 import com.prography.backend.global.common.enums.AttendanceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -35,6 +36,10 @@ public class Attendance extends BaseEntity {
     @JoinColumn(name = "cohort_member_id", nullable = false)
     private CohortMember cohortMember;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "qr_code_id")
+    private QrCode qrCode;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private AttendanceStatus status;
@@ -44,7 +49,7 @@ public class Attendance extends BaseEntity {
     private AttendanceSource source;
 
     @Column(name = "checked_at")
-    private LocalDateTime checkedAt;
+    private Instant checkedAt;
 
     @Column(name = "lateness_minutes")
     private Integer latenessMinutes;

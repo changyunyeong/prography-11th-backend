@@ -2,7 +2,7 @@ package com.prography.backend.domain.session.controller;
 
 import com.prography.backend.domain.session.dto.SessionRequestDTO;
 import com.prography.backend.domain.session.dto.SessionResponseDTO;
-import com.prography.backend.domain.session.service.SessionService;
+import com.prography.backend.domain.session.service.AdminSessionService;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin/sessions")
 public class AdminSessionController {
 
-    private final SessionService sessionService;
+    private final AdminSessionService adminSessionService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -30,7 +30,7 @@ public class AdminSessionController {
     public ApiResponse<SessionResponseDTO.SessionResultDTO> createSession(
             @Valid @RequestBody SessionRequestDTO.CreateSessionRequestDTO request
     ) {
-        SessionResponseDTO.SessionResultDTO response = sessionService.createSession(request);
+        SessionResponseDTO.SessionResultDTO response = adminSessionService.createSession(request);
         return ApiResponse.success(response);
     }
 
@@ -43,7 +43,7 @@ public class AdminSessionController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(value = "status", required = false) SessionStatus status
     ) {
-        List<SessionResponseDTO.SessionResultDTO> response = sessionService.getSessionList(dateFrom, dateTo, status);
+        List<SessionResponseDTO.SessionResultDTO> response = adminSessionService.getSessionList(dateFrom, dateTo, status);
         return ApiResponse.success(response);
     }
 
@@ -53,7 +53,7 @@ public class AdminSessionController {
             @PathVariable("id") Long sessionId,
             @Valid @RequestBody SessionRequestDTO.UpdateSessionRequestDTO request
     ) {
-        SessionResponseDTO.SessionResultDTO response = sessionService.updateSession(sessionId, request);
+        SessionResponseDTO.SessionResultDTO response = adminSessionService.updateSession(sessionId, request);
         return ApiResponse.success(response);
     }
 
@@ -62,7 +62,7 @@ public class AdminSessionController {
     public ApiResponse<SessionResponseDTO.SessionResultDTO> deleteSession(
             @PathVariable("id") Long sessionId
     ) {
-        SessionResponseDTO.SessionResultDTO response = sessionService.deleteSession(sessionId);
+        SessionResponseDTO.SessionResultDTO response = adminSessionService.deleteSession(sessionId);
         return ApiResponse.success(response);
     }
 
@@ -72,7 +72,7 @@ public class AdminSessionController {
     public ApiResponse<SessionResponseDTO.QrCodeResultDTO> createQrCode(
             @PathVariable("sessionId") Long sessionId
     ) {
-        SessionResponseDTO.QrCodeResultDTO response = sessionService.createQrCode(sessionId);
+        SessionResponseDTO.QrCodeResultDTO response = adminSessionService.createQrCode(sessionId);
         return ApiResponse.success(response);
     }
 }
