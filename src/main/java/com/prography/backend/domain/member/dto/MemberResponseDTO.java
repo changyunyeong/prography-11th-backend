@@ -117,4 +117,32 @@ public class MemberResponseDTO {
                     .build();
         }
     }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MemberLoginDTO {
+        private Long id;
+        private String loginId;
+        private String name;
+        private String phone;
+        private MemberStatus status;
+        private MemberRole role;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public static MemberLoginDTO from(Member member) {
+            return MemberLoginDTO.builder()
+                    .id(member.getId())
+                    .loginId(member.getLoginId())
+                    .name(member.getName())
+                    .phone(member.getPhone())
+                    .status(member.getStatus())
+                    .role(member.getRole())
+                    .createdAt(member.getCreatedAt())
+                    .updatedAt(member.getUpdatedAt())
+                    .build();
+        }
+    }
 }

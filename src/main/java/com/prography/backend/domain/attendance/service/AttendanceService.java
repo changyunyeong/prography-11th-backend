@@ -240,7 +240,7 @@ public class AttendanceService {
         }
 
         if (lateMinutes == null || lateMinutes < 0) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST);
+            throw new ApiException(ErrorCode.INVALID_INPUT);
         }
 
         return lateMinutes;

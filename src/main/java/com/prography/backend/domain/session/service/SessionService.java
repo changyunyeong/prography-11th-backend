@@ -203,7 +203,7 @@ public class SessionService {
         try {
             return LocalTime.parse(rawTime, REQUEST_TIME_FORMATTER);
         } catch (DateTimeParseException exception) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST);
+            throw new ApiException(ErrorCode.INVALID_INPUT);
         }
     }
 
@@ -233,7 +233,7 @@ public class SessionService {
 
     private void validateDateRange(LocalDate dateFrom, LocalDate dateTo) {
         if (dateFrom != null && dateTo != null && dateFrom.isAfter(dateTo)) {
-            throw new ApiException(ErrorCode.INVALID_REQUEST);
+            throw new ApiException(ErrorCode.INVALID_INPUT);
         }
     }
 
