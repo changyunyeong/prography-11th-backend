@@ -16,4 +16,6 @@ public interface QrCodeRepository extends JpaRepository<QrCode, Long> {
     @Query("select q from QrCode q where q.session.id in :sessionIds and q.revokedAt is null and q.expiresAt > :now")
     List<QrCode> findActiveBySessionIdIn(List<Long> sessionIds, Instant now);
 
+    Optional<QrCode> findByHashValue(String hashValue);
+
 }

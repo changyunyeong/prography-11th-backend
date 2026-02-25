@@ -3,6 +3,7 @@ package com.prography.backend.domain.attendance.entity;
 import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.member.entity.Member;
+import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.global.common.enums.AttendanceSource;
 import com.prography.backend.global.common.enums.AttendanceStatus;
@@ -34,6 +35,10 @@ public class Attendance extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "cohort_member_id", nullable = false)
     private CohortMember cohortMember;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "qr_code_id")
+    private QrCode qrCode;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
