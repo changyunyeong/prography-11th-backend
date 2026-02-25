@@ -87,4 +87,33 @@ public class SessionResponseDTO {
                     .build();
         }
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SessionInfoDTO {
+        private Long id;
+        private String title;
+        private LocalDate date;
+        private LocalTime time;
+        private String location;
+        private SessionStatus status;
+        private Instant createdAt;
+        private Instant updatedAt;
+
+        public static SessionInfoDTO from(ClubSession session) {
+            LocalDateTime startsAt = session.getStartsAt();
+            return SessionInfoDTO.builder()
+                    .id(session.getId())
+                    .title(session.getTitle())
+                    .date(startsAt.toLocalDate())
+                    .time(startsAt.toLocalTime())
+                    .location(session.getLocation())
+                    .status(session.getStatus())
+                    .createdAt(session.getCreatedAt())
+                    .updatedAt(session.getUpdatedAt())
+                    .build();
+        }
+    }
 }
