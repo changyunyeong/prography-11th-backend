@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class CohortResponseDTO {
@@ -23,7 +23,7 @@ public class CohortResponseDTO {
         private Long id;
         private Integer generation;
         private String name;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         public static CohortListDTO from(Cohort cohort) {
             return CohortListDTO.builder()
@@ -45,7 +45,7 @@ public class CohortResponseDTO {
         private String name;
         private List<CohortPartDTO> parts;
         private List<CohortTeamDTO> teams;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         public static CohortDetailDTO from(Cohort cohort, List<Part> parts, List<Team> teams) {
             return CohortDetailDTO.builder()
@@ -117,7 +117,7 @@ public class CohortResponseDTO {
         private Integer balanceAfter;
         private Long attendanceId;
         private String description;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         public static DepositHistoryDTO from(DepositHistory deposit) {
             int displayAmount = deposit.getAmount();

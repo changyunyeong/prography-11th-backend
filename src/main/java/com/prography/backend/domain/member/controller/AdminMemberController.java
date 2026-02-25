@@ -3,7 +3,7 @@ package com.prography.backend.domain.member.controller;
 import com.prography.backend.domain.member.dto.MemberRequestDTO;
 import com.prography.backend.domain.member.dto.MemberResponseDTO;
 import com.prography.backend.global.common.enums.MemberStatus;
-import com.prography.backend.domain.member.service.MemberService;
+import com.prography.backend.domain.member.service.AdminMemberService;
 import com.prography.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,13 +18,14 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/admin/members")
 public class AdminMemberController {
 
-    private final MemberService memberService;
+    private final AdminMemberService adminMemberService;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "회원 등록", description = "신규 회원을 등록하고, 기수에 배정하며, 보증금을 초기화합니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> createMember(@Valid @RequestBody MemberRequestDTO.CreateMemberRequestDTO request) {
 
-        MemberResponseDTO.MemberResultDTO response = memberService.createMember(request);
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.createMember(request);
         return ApiResponse.success(response);
     }
 
@@ -41,7 +42,7 @@ public class AdminMemberController {
             @RequestParam(value = "teamName", required = false) String teamName,
             @RequestParam(value = "status", required = false) MemberStatus status
             ) {
-        MemberResponseDTO.MemberDashboardPreViewListDTO response = memberService.getMemberDashboard(
+        MemberResponseDTO.MemberDashboardPreViewListDTO response = adminMemberService.getMemberDashboard(
                 page, size, searchType, searchValue, generation, partName, teamName, status
         );
         return ApiResponse.success(response);
@@ -49,23 +50,23 @@ public class AdminMemberController {
 
     @GetMapping("/{id}")
     @Operation(summary = "회원 상세 조회", description = "회원의 상세 정보를 기수/파트/팀 정보와 함께 조회합니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> getMemberDetail(@PathVariable("id") Long memberId) {
-        MemberResponseDTO.MemberResultDTO response = memberService.getMemberDetail(memberId);
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> getMemberDetail(@PathVariable("id") Long memberId) {
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.getMemberDetail(memberId);
         return ApiResponse.success(response);
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "회원 수정", description = "회원 정보를 수정합니다. 모든 필드는 optional이며, 전달된 필드만 수정됩니다.")
-    public ApiResponse<MemberResponseDTO.MemberResultDTO> updateMember(@PathVariable("id") Long memberId,
-                                                        @Valid @RequestBody MemberRequestDTO.UpdateMemberRequestDTO request) {
-        MemberResponseDTO.MemberResultDTO response = memberService.updateMember(memberId, request);
+    public ApiResponse<MemberResponseDTO.MemberAdminResultDTO> updateMember(@PathVariable("id") Long memberId,
+                                                                            @Valid @RequestBody MemberRequestDTO.UpdateMemberRequestDTO request) {
+        MemberResponseDTO.MemberAdminResultDTO response = adminMemberService.updateMember(memberId, request);
         return ApiResponse.success(response);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "회원 탈퇴", description = "회원 정보를 삭제합니다. 회원을 Soft-delete 처리합니다. 실제 삭제가 아닌 상태를 WITHDRAWN으로 변경합니다.")
     public ApiResponse<MemberResponseDTO.MemberDeleteDTO> deleteMember(@PathVariable("id") Long memberId) {
-        MemberResponseDTO.MemberDeleteDTO response = memberService.deleteMember(memberId);
+        MemberResponseDTO.MemberDeleteDTO response = adminMemberService.deleteMember(memberId);
         return ApiResponse.success(response);
     }
 }

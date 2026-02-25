@@ -2,6 +2,7 @@ package com.prography.backend.domain.attendance.dto;
 
 import com.prography.backend.global.common.enums.AttendanceStatus;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
@@ -27,5 +28,13 @@ public class AttendanceRequestDTO {
         @Min(0)
         private Integer lateMinutes;
         private String reason;
+    }
+
+    @Getter
+    public static class CheckAttendanceRequestDTO {
+        @NotBlank
+        private String hashValue;
+        @NotNull
+        private Long memberId;
     }
 }
