@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,8 +29,8 @@ public class SessionResponseDTO {
         private SessionStatus status;
         private AttendanceSummaryDTO attendanceSummary;
         private Boolean qrActive;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static SessionResultDTO from(
                 ClubSession session,
@@ -73,8 +74,8 @@ public class SessionResponseDTO {
         private Long id;
         private Long sessionId;
         private String hashValue;
-        private LocalDateTime createdAt;
-        private LocalDateTime expiresAt;
+        private Instant createdAt;
+        private Instant expiresAt;
 
         public static QrCodeResultDTO from(QrCode qrCode) {
             return QrCodeResultDTO.builder()

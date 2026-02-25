@@ -9,7 +9,7 @@ import com.prography.backend.global.common.enums.AttendanceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -44,7 +44,7 @@ public class Attendance extends BaseEntity {
     private AttendanceSource source;
 
     @Column(name = "checked_at")
-    private LocalDateTime checkedAt;
+    private Instant checkedAt;
 
     @Column(name = "lateness_minutes")
     private Integer latenessMinutes;

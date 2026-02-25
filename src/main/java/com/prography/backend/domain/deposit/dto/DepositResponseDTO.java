@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class DepositResponseDTO {
 
@@ -23,7 +23,7 @@ public class DepositResponseDTO {
         private int balanceAfter;
         private Long attendanceId;
         private String description;
-        private LocalDateTime createdAt;
+        private Instant createdAt;
 
         public static DepositHistoryDTO from(DepositHistory history) {
             int displayAmount = history.getAmount();

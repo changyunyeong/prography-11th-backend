@@ -18,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
@@ -59,11 +60,11 @@ public class SessionService {
                 .build();
         session = clubSessionRepository.save(session);
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         QrCode qrCode = QrCode.builder()
                 .session(session)
                 .hashValue(UUID.randomUUID().toString())
-                .expiresAt(now.plusHours(24))
+                .expiresAt(now.plus(24, ChronoUnit.HOURS))
                 .build();
         qrCodeRepository.save(qrCode);
 
@@ -104,7 +105,7 @@ public class SessionService {
             }
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         Set<Long> activeQrSessionIds = qrCodeRepository.findActiveBySessionIdIn(sessionIds, now).stream()
                 .map(QrCode::getSession)
                 .map(ClubSession::getId)
@@ -165,7 +166,7 @@ public class SessionService {
             throw new ApiException(ErrorCode.SESSION_ALREADY_CANCELLED);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         List<QrCode> activeQrCodes = qrCodeRepository.findActiveBySessionId(sessionId, now);
         for (QrCode qrCode : activeQrCodes) {
             qrCode.revoke(now);
@@ -184,7 +185,7 @@ public class SessionService {
         ClubSession session = clubSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ApiException(ErrorCode.SESSION_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         if (!qrCodeRepository.findActiveBySessionId(sessionId, now).isEmpty()) {
             throw new ApiException(ErrorCode.QR_ALREADY_ACTIVE); // 해당 일정에 활성(expiresAt > 현재시각) QR 코드가 있으면 중복 생성 불가
         }
@@ -192,7 +193,7 @@ public class SessionService {
         QrCode qrCode = QrCode.builder()
                 .session(session)
                 .hashValue(UUID.randomUUID().toString()) // UUID 기반 hashValue 생성
-                .expiresAt(now.plusHours(24)) // 유효기간: 생성 시각 + 24시간
+                .expiresAt(now.plus(24, ChronoUnit.HOURS)) // 유효기간: 생성 시각 + 24시간
                 .build();
         qrCode = qrCodeRepository.saveAndFlush(qrCode);
 
@@ -227,7 +228,7 @@ public class SessionService {
     }
 
     private boolean isQrActive(Long sessionId) {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
         return !qrCodeRepository.findActiveBySessionId(sessionId, now).isEmpty();
     }
 

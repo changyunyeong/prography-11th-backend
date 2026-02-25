@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class AttendanceResponseDTO {
@@ -27,9 +27,9 @@ public class AttendanceResponseDTO {
         private Integer lateMinutes;
         private Integer penaltyAmount;
         private String reason;
-        private LocalDateTime checkedInAt;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant checkedInAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static AttendanceResultDTO from(Attendance attendance) {
             return AttendanceResultDTO.builder()

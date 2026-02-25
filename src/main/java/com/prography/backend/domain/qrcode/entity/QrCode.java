@@ -5,7 +5,7 @@ import com.prography.backend.domain.session.entity.ClubSession;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
@@ -27,16 +27,16 @@ public class QrCode extends BaseEntity {
     private String hashValue;
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
 
     @Column(name = "revoked_at")
-    private LocalDateTime revokedAt;
+    private Instant revokedAt;
 
-    public void revoke(LocalDateTime revokedAt) {
+    public void revoke(Instant revokedAt) {
         this.revokedAt = revokedAt;
     }
 
-    public void expire(LocalDateTime expiresAt) {
+    public void expire(Instant expiresAt) {
         this.expiresAt = expiresAt;
     }
 

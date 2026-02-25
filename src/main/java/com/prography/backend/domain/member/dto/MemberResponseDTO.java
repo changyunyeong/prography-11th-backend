@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 public class MemberResponseDTO {
@@ -28,8 +28,8 @@ public class MemberResponseDTO {
         private Integer generation;
         private String partName;
         private String teamName;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static MemberResultDTO from(Member member, CohortMember cohortMember) {
             return MemberResultDTO.builder()
@@ -63,8 +63,8 @@ public class MemberResponseDTO {
         private String partName;
         private String teamName;
         private Integer deposit;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static MemberDashboardPreViewDTO from(Member member, CohortMember cohortMember) {
             return MemberDashboardPreViewDTO.builder()
@@ -105,7 +105,7 @@ public class MemberResponseDTO {
         private String loginId;
         private String name;
         private MemberStatus status;
-        private LocalDateTime updatedAt;
+        private Instant updatedAt;
 
         public static MemberDeleteDTO from(Member member) {
             return MemberDeleteDTO.builder()
@@ -129,8 +129,8 @@ public class MemberResponseDTO {
         private String phone;
         private MemberStatus status;
         private MemberRole role;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Instant createdAt;
+        private Instant updatedAt;
 
         public static MemberLoginDTO from(Member member) {
             return MemberLoginDTO.builder()
