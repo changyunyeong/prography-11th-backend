@@ -1,6 +1,5 @@
 package com.prography.backend.domain.attendance.service;
 
-import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.dto.AttendanceResponseDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
 import com.prography.backend.domain.attendance.repository.AttendanceRepository;
@@ -32,13 +31,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static com.prography.backend.support.TestFixtures.attendance;
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.cohortMember;
-import static com.prography.backend.support.TestFixtures.member;
-import static com.prography.backend.support.TestFixtures.registerAttendanceRequest;
-import static com.prography.backend.support.TestFixtures.session;
-import static com.prography.backend.support.TestFixtures.updateAttendanceRequest;
+import static com.prography.backend.global.support.TestFixtures.attendance;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.cohortMember;
+import static com.prography.backend.global.support.TestFixtures.member;
+import static com.prography.backend.global.support.TestFixtures.registerAttendanceRequest;
+import static com.prography.backend.global.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.updateAttendanceRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -138,7 +137,6 @@ class AdminAttendanceServiceTest {
         when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.empty());
 
         // then
@@ -162,7 +160,6 @@ class AdminAttendanceServiceTest {
         when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
 
         // then
@@ -186,7 +183,6 @@ class AdminAttendanceServiceTest {
         when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
 
         // then
@@ -210,7 +206,6 @@ class AdminAttendanceServiceTest {
         when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> {
             Attendance saved = invocation.getArgument(0, Attendance.class);
@@ -239,7 +234,6 @@ class AdminAttendanceServiceTest {
         when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -251,6 +245,31 @@ class AdminAttendanceServiceTest {
         assertThat(result.getStatus()).isEqualTo(AttendanceStatus.EXCUSED);
         assertThat(cohortMember.getExcuseCount()).isEqualTo(2);
         verify(depositService).applyPenalty(eq(cohortMember), eq(0), any(Attendance.class), anyString());
+    }
+
+    @Test
+    void 출결등록시_현재기수대신_세션기수로_기수회원을_조회한다() {
+        // given
+        Cohort sessionCohort = cohort(1L, 10, "10기", false);
+        ClubSession session = session(1L, sessionCohort, "세션", LocalDateTime.now(), "강남", SessionStatus.IN_PROGRESS);
+        Member member = member(1L, "u1", "pw", "홍길동", "010", MemberRole.MEMBER, MemberStatus.ACTIVE);
+        CohortMember sessionCohortMember = cohortMember(10L, sessionCohort, member, null, null, 100_000, 0);
+
+        // when
+        when(sessionRepository.findById(1L)).thenReturn(Optional.of(session));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
+        when(cohortMemberRepository.findByCohortIdAndMemberId(1L, 1L)).thenReturn(Optional.of(sessionCohortMember));
+        when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AttendanceResponseDTO.AttendanceResultDTO result = adminAttendanceService.registerAttendance(
+                registerAttendanceRequest(1L, 1L, AttendanceStatus.PRESENT, null, null)
+        );
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(AttendanceStatus.PRESENT);
+        verify(cohortMemberRepository).findByCohortIdAndMemberId(1L, 1L);
+        verifyNoInteractions(currentCohortProvider);
     }
 
     @Test
@@ -279,7 +298,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.empty());
 
         // then
@@ -304,7 +322,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
 
         // then
@@ -314,6 +331,32 @@ class AdminAttendanceServiceTest {
                 .isInstanceOf(ApiException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.EXCUSE_LIMIT_EXCEEDED);
+    }
+
+    @Test
+    void 출결수정시_현재기수대신_출결의세션기수로_기수회원을_조회한다() {
+        // given
+        Cohort sessionCohort = cohort(1L, 10, "10기", false);
+        Member member = member(1L, "u1", "pw", "홍길동", "010", MemberRole.MEMBER, MemberStatus.ACTIVE);
+        ClubSession session = session(1L, sessionCohort, "세션", LocalDateTime.now(), "강남", SessionStatus.IN_PROGRESS);
+        CohortMember sessionCohortMember = cohortMember(11L, sessionCohort, member, null, null, 90_000, 0);
+        Attendance attendance = attendance(
+                100L, session, member, sessionCohortMember, null, AttendanceStatus.PRESENT, AttendanceSource.ADMIN, null, null, 0, null
+        );
+
+        // when
+        when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
+        when(cohortMemberRepository.findByCohortIdAndMemberId(1L, 1L)).thenReturn(Optional.of(sessionCohortMember));
+        when(attendanceRepository.saveAndFlush(attendance)).thenReturn(attendance);
+
+        AttendanceResponseDTO.AttendanceResultDTO result = adminAttendanceService.updateAttendance(
+                updateAttendanceRequest(AttendanceStatus.PRESENT, null, null), 100L
+        );
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(AttendanceStatus.PRESENT);
+        verify(cohortMemberRepository).findByCohortIdAndMemberId(1L, 1L);
+        verifyNoInteractions(currentCohortProvider);
     }
 
     @Test
@@ -329,7 +372,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(attendance)).thenReturn(attendance);
 
@@ -355,7 +397,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(attendance)).thenReturn(attendance);
 
@@ -382,7 +423,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(attendance)).thenReturn(attendance);
 
@@ -406,7 +446,6 @@ class AdminAttendanceServiceTest {
 
         // when
         when(attendanceRepository.findById(100L)).thenReturn(Optional.of(attendance));
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(attendance)).thenReturn(attendance);
 

@@ -22,11 +22,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
-import static com.prography.backend.support.TestFixtures.attendance;
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.cohortMember;
-import static com.prography.backend.support.TestFixtures.member;
-import static com.prography.backend.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.attendance;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.cohortMember;
+import static com.prography.backend.global.support.TestFixtures.member;
+import static com.prography.backend.global.support.TestFixtures.session;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;

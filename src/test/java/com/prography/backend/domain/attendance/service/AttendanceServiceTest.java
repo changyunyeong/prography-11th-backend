@@ -20,7 +20,6 @@ import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
-import com.prography.backend.global.support.CurrentCohortProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -36,13 +35,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-import static com.prography.backend.support.TestFixtures.attendance;
-import static com.prography.backend.support.TestFixtures.checkAttendanceRequest;
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.cohortMember;
-import static com.prography.backend.support.TestFixtures.member;
-import static com.prography.backend.support.TestFixtures.qrCode;
-import static com.prography.backend.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.attendance;
+import static com.prography.backend.global.support.TestFixtures.checkAttendanceRequest;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.cohortMember;
+import static com.prography.backend.global.support.TestFixtures.member;
+import static com.prography.backend.global.support.TestFixtures.qrCode;
+import static com.prography.backend.global.support.TestFixtures.session;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,9 +70,6 @@ class AttendanceServiceTest {
     @Mock
     private DepositService depositService;
 
-    @Mock
-    private CurrentCohortProvider currentCohortProvider;
-
     @InjectMocks
     private AttendanceService attendanceService;
 
@@ -98,6 +94,24 @@ class AttendanceServiceTest {
         Cohort cohort = cohort(2L, 11, "11기", true);
         ClubSession session = session(1L, cohort, "세션", LocalDateTime.now(), "강남", SessionStatus.IN_PROGRESS);
         QrCode qrCode = qrCode(10L, session, "hash", Instant.now().minus(1, ChronoUnit.SECONDS));
+
+        // when
+        when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
+
+        // then
+        assertThatThrownBy(() -> attendanceService.checkAttendance(checkAttendanceRequest("hash", 1L)))
+                .isInstanceOf(ApiException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.QR_EXPIRED);
+    }
+
+    @Test
+    void QR출석체크시_revoke된QR이면_QR_EXPIRED_예외() {
+        // given
+        Cohort cohort = cohort(2L, 11, "11기", true);
+        ClubSession session = session(1L, cohort, "세션", LocalDateTime.now(), "강남", SessionStatus.IN_PROGRESS);
+        QrCode qrCode = qrCode(10L, session, "hash", Instant.now().plus(1, ChronoUnit.HOURS));
+        ReflectionTestUtils.setField(qrCode, "revokedAt", Instant.now().minus(1, ChronoUnit.SECONDS));
 
         // when
         when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
@@ -195,7 +209,6 @@ class AttendanceServiceTest {
         when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.empty());
 
         // then
@@ -203,6 +216,35 @@ class AttendanceServiceTest {
                 .isInstanceOf(ApiException.class)
                 .extracting("errorCode")
                 .isEqualTo(ErrorCode.COHORT_MEMBER_NOT_FOUND);
+    }
+
+    @Test
+    void QR출석체크시_세션기수의_기수회원을_조회한다() {
+        // given
+        Cohort sessionCohort = cohort(1L, 10, "10기", false);
+        LocalDateTime seoulFuture = LocalDateTime.now(ZoneId.of("Asia/Seoul")).plusHours(2);
+        ClubSession session = session(1L, sessionCohort, "세션", seoulFuture, "강남", SessionStatus.IN_PROGRESS);
+        QrCode qrCode = qrCode(10L, session, "hash", Instant.now().plus(1, ChronoUnit.HOURS));
+        Member member = member(1L, "user1", "pw", "홍길동", "010", MemberRole.MEMBER, MemberStatus.ACTIVE);
+        CohortMember sessionCohortMember = cohortMember(20L, sessionCohort, member, null, null, 100_000, 0);
+
+        // when
+        when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
+        when(cohortMemberRepository.findByCohortIdAndMemberId(1L, 1L)).thenReturn(Optional.of(sessionCohortMember));
+        when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> {
+            Attendance saved = invocation.getArgument(0, Attendance.class);
+            ReflectionTestUtils.setField(saved, "id", 1001L);
+            return saved;
+        });
+
+        AttendanceResponseDTO.AttendanceResultDTO result = attendanceService.checkAttendance(checkAttendanceRequest("hash", 1L));
+
+        // then
+        assertThat(result.getStatus()).isEqualTo(AttendanceStatus.PRESENT);
+        verify(cohortMemberRepository).findByCohortIdAndMemberId(1L, 1L);
+        verify(depositService).applyPenalty(eq(sessionCohortMember), eq(0), any(Attendance.class), anyString());
     }
 
     @Test
@@ -219,7 +261,6 @@ class AttendanceServiceTest {
         when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> {
             Attendance saved = invocation.getArgument(0, Attendance.class);
@@ -255,7 +296,6 @@ class AttendanceServiceTest {
         when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> {
             Attendance saved = invocation.getArgument(0, Attendance.class);
@@ -286,7 +326,6 @@ class AttendanceServiceTest {
         when(qrCodeRepository.findByHashValue("hash")).thenReturn(Optional.of(qrCode));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
         when(attendanceRepository.existsBySessionIdAndMemberId(1L, 1L)).thenReturn(false);
-        when(currentCohortProvider.getCurrentCohort()).thenReturn(cohort);
         when(cohortMemberRepository.findByCohortIdAndMemberId(2L, 1L)).thenReturn(Optional.of(cohortMember));
         when(attendanceRepository.saveAndFlush(any(Attendance.class))).thenAnswer(invocation -> invocation.getArgument(0));
         doThrow(new ApiException(ErrorCode.DEPOSIT_INSUFFICIENT))

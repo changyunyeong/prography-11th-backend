@@ -15,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.session;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
