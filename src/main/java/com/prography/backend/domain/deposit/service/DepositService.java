@@ -1,12 +1,12 @@
 package com.prography.backend.domain.deposit.service;
 
-import com.prography.backend.global.common.error.ApiException;
-import com.prography.backend.global.common.error.ErrorCode;
 import com.prography.backend.domain.attendance.entity.Attendance;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.deposit.entity.DepositHistory;
-import com.prography.backend.global.common.enums.DepositType;
 import com.prography.backend.domain.deposit.repository.DepositHistoryRepository;
+import com.prography.backend.global.common.enums.DepositType;
+import com.prography.backend.global.common.error.ApiException;
+import com.prography.backend.global.common.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

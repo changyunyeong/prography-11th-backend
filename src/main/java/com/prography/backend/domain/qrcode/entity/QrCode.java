@@ -1,7 +1,7 @@
 package com.prography.backend.domain.qrcode.entity;
 
-import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.session.entity.ClubSession;
+import com.prography.backend.global.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

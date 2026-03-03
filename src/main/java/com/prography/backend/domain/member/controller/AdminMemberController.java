@@ -2,8 +2,8 @@ package com.prography.backend.domain.member.controller;
 
 import com.prography.backend.domain.member.dto.MemberRequestDTO;
 import com.prography.backend.domain.member.dto.MemberResponseDTO;
-import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.domain.member.service.AdminMemberService;
+import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

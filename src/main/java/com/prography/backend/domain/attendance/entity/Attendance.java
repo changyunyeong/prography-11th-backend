@@ -1,10 +1,10 @@
 package com.prography.backend.domain.attendance.entity;
 
-import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.member.entity.Member;
 import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.session.entity.ClubSession;
+import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.global.common.enums.AttendanceSource;
 import com.prography.backend.global.common.enums.AttendanceStatus;
 import jakarta.persistence.*;

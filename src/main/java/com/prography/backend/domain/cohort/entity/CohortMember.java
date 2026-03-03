@@ -1,7 +1,7 @@
 package com.prography.backend.domain.cohort.entity;
 
-import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.member.entity.Member;
+import com.prography.backend.global.common.base.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

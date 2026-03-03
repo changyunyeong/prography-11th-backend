@@ -1,10 +1,10 @@
 package com.prography.backend.domain.session.service;
 
 import com.prography.backend.domain.cohort.entity.Cohort;
-import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.domain.session.dto.SessionResponseDTO;
 import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.domain.session.repository.ClubSessionRepository;
+import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.support.CurrentCohortProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
