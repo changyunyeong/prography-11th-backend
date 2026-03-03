@@ -1,4 +1,4 @@
-package com.prography.backend.support;
+package com.prography.backend.global.support;
 
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
