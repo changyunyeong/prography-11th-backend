@@ -56,8 +56,8 @@ public class AdminAttendanceService {
         }
 
         // CohortMember 존재 확인
-        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
-        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(currentCohortId, member.getId())
+        Long sessionCohortId = session.getCohort().getId();
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(sessionCohortId, member.getId())
                 .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));
 
         // EXCUSED 등록 시: excuseCount < 3 검증 → 통과 시 excuseCount++
@@ -105,10 +105,10 @@ public class AdminAttendanceService {
 
         Attendance attendance = attendanceRepository.findById(attendanceId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ATTENDANCE_NOT_FOUND));
-        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
+        Long sessionCohortId = attendance.getSession().getCohort().getId();
 
         CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(
-                        currentCohortId,
+                        sessionCohortId,
                         attendance.getMember().getId()
                 )
                 .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));

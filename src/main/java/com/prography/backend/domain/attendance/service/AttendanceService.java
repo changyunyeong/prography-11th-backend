@@ -17,7 +17,6 @@ import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
-import com.prography.backend.global.support.CurrentCohortProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +41,6 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final CohortMemberRepository cohortMemberRepository;
     private final DepositService depositService;
-    private final CurrentCohortProvider currentCohortProvider;
 
     public AttendanceResponseDTO.AttendanceResultDTO checkAttendance(AttendanceRequestDTO.CheckAttendanceRequestDTO request) {
 
@@ -50,8 +48,9 @@ public class AttendanceService {
         QrCode qrCode = qrCodeRepository.findByHashValue(request.getHashValue())
                 .orElseThrow(() -> new ApiException(ErrorCode.QR_INVALID));
 
+        Instant now = Instant.now();
         // QR 만료 검증 (expiresAt < 현재 시각) → 만료면 QR_EXPIRED
-        if (qrCode.getExpiresAt().isBefore(Instant.now())) {
+        if (qrCode.getRevokedAt() != null || !qrCode.getExpiresAt().isAfter(now)) {
             throw new ApiException(ErrorCode.QR_EXPIRED);
         }
 
@@ -76,8 +75,8 @@ public class AttendanceService {
         }
 
         // 현재 기수의 CohortMember 존재 확인 → 없으면 COHORT_MEMBER_NOT_FOUND
-        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
-        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(currentCohortId, member.getId())
+        Long sessionCohortId = qrCode.getSession().getCohort().getId();
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(sessionCohortId, member.getId())
                 .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));
 
         // 지각 시간 계산:
