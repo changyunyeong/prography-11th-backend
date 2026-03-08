@@ -3,6 +3,7 @@ package com.prography.backend.domain.attendance.service;
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.dto.AttendanceResponseDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
+import com.prography.backend.domain.attendance.policy.AttendancePenaltyPolicy;
 import com.prography.backend.domain.attendance.repository.AttendanceRepository;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.cohort.repository.CohortMemberRepository;
@@ -17,11 +18,11 @@ import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
-import com.prography.backend.global.support.CurrentCohortProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -33,16 +34,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AttendanceService {
 
-    private static final int ABSENT_PENALTY = 10_000;
-    private static final int LATE_PENALTY_PER_MINUTE = 500;
-    private static final int MAX_LATE_PENALTY = 10_000;
-
     private final QrCodeRepository qrCodeRepository;
     private final MemberRepository memberRepository;
     private final AttendanceRepository attendanceRepository;
     private final CohortMemberRepository cohortMemberRepository;
     private final DepositService depositService;
-    private final CurrentCohortProvider currentCohortProvider;
+    private final AttendancePenaltyPolicy attendancePenaltyPolicy;
+    private final Clock clock;
 
     public AttendanceResponseDTO.AttendanceResultDTO checkAttendance(AttendanceRequestDTO.CheckAttendanceRequestDTO request) {
 
@@ -50,8 +48,9 @@ public class AttendanceService {
         QrCode qrCode = qrCodeRepository.findByHashValue(request.getHashValue())
                 .orElseThrow(() -> new ApiException(ErrorCode.QR_INVALID));
 
+        Instant now = Instant.now(clock);
         // QR 만료 검증 (expiresAt < 현재 시각) → 만료면 QR_EXPIRED
-        if (qrCode.getExpiresAt().isBefore(Instant.now())) {
+        if (qrCode.getRevokedAt() != null || !qrCode.getExpiresAt().isAfter(now)) {
             throw new ApiException(ErrorCode.QR_EXPIRED);
         }
 
@@ -76,8 +75,8 @@ public class AttendanceService {
         }
 
         // 현재 기수의 CohortMember 존재 확인 → 없으면 COHORT_MEMBER_NOT_FOUND
-        Long currentCohortId = currentCohortProvider.getCurrentCohort().getId();
-        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(currentCohortId, member.getId())
+        Long sessionCohortId = qrCode.getSession().getCohort().getId();
+        CohortMember cohortMember = cohortMemberRepository.findByCohortIdAndMemberId(sessionCohortId, member.getId())
                 .orElseThrow(() -> new ApiException(ErrorCode.COHORT_MEMBER_NOT_FOUND));
 
         // 지각 시간 계산:
@@ -85,7 +84,7 @@ public class AttendanceService {
         // 현재 > 일정시각 → LATE (지각분 = 차이(분))
         // 현재 <= 일정시각 → PRESENT
         ZoneId seoulZoneId = ZoneId.of("Asia/Seoul");
-        LocalDateTime nowInSeoul = LocalDateTime.now(seoulZoneId);
+        LocalDateTime nowInSeoul = LocalDateTime.ofInstant(now, seoulZoneId);
         LocalDateTime sessionStartsAt = qrCode.getSession().getStartsAt();
 
         AttendanceStatus status;
@@ -100,7 +99,7 @@ public class AttendanceService {
         // 패널티 계산:
         // PRESENT → 0원
         // LATE → min(지각분 × 500, 10,000)원
-        int penaltyAmount = calculatePenaltyAmount(status, lateMinutes);
+        int penaltyAmount = attendancePenaltyPolicy.calculatePenaltyAmount(status, lateMinutes);
 
         // Attendance 저장 (qrCodeId, checkedInAt 포함)
         Attendance attendance = Attendance.builder()
@@ -110,7 +109,7 @@ public class AttendanceService {
                 .qrCode(qrCode)
                 .status(status)
                 .source(AttendanceSource.QR)
-                .checkedAt(Instant.now())
+                .checkedAt(now)
                 .latenessMinutes(lateMinutes)
                 .penaltyAmount(penaltyAmount)
                 .reason(null)
@@ -139,18 +138,6 @@ public class AttendanceService {
         return attendanceRepository.findAllByMemberIdOrderByCreatedAtAsc(memberId).stream()
                 .map(AttendanceResponseDTO.AttendanceHistoryDTO::from)
                 .toList();
-    }
-
-    private int calculatePenaltyAmount(AttendanceStatus status, Integer lateMinutes) {
-        if (status == AttendanceStatus.PRESENT || status == AttendanceStatus.EXCUSED) {
-            return 0;
-        }
-        if (status == AttendanceStatus.ABSENT) {
-            return ABSENT_PENALTY;
-        }
-
-        long latePenalty = (long) lateMinutes * LATE_PENALTY_PER_MINUTE;
-        return (int) Math.min(latePenalty, MAX_LATE_PENALTY);
     }
 
     private String createPenaltyDescription(AttendanceStatus status, int penaltyAmount) {

@@ -6,7 +6,7 @@
 - Java 21
 - Spring Boot 3.3.5
 - Spring Data JPA
-- H2 Database (in-memory)
+- H2 Database (file-based, `~/prography-db/prography`)
 - Gradle
 
 ## 실행 방법 (필수)

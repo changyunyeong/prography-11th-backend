@@ -1,4 +1,4 @@
-package com.prography.backend.support;
+package com.prography.backend.global.support;
 
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
@@ -12,13 +12,7 @@ import com.prography.backend.domain.member.entity.Member;
 import com.prography.backend.domain.qrcode.entity.QrCode;
 import com.prography.backend.domain.session.dto.SessionRequestDTO;
 import com.prography.backend.domain.session.entity.ClubSession;
-import com.prography.backend.global.common.enums.AttendanceSource;
-import com.prography.backend.global.common.enums.AttendanceStatus;
-import com.prography.backend.global.common.enums.DepositType;
-import com.prography.backend.global.common.enums.MemberRole;
-import com.prography.backend.global.common.enums.MemberStatus;
-import com.prography.backend.global.common.enums.PartType;
-import com.prography.backend.global.common.enums.SessionStatus;
+import com.prography.backend.global.common.enums.*;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;

@@ -8,6 +8,7 @@ import com.prography.backend.domain.session.entity.ClubSession;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,17 +16,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.qrCode;
-import static com.prography.backend.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.qrCode;
+import static com.prography.backend.global.support.TestFixtures.session;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,8 +37,16 @@ class QrCodeServiceTest {
     @Mock
     private QrCodeRepository qrCodeRepository;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private QrCodeService qrCodeService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(clock.instant()).thenAnswer(ignored -> Instant.now());
+    }
 
     @Test
     void QR갱신시_기존QR만료후_새QR을_생성한다() {

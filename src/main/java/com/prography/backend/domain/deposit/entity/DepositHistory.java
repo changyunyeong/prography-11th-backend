@@ -1,8 +1,8 @@
 package com.prography.backend.domain.deposit.entity;
 
 import com.prography.backend.domain.attendance.entity.Attendance;
-import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.domain.cohort.entity.CohortMember;
+import com.prography.backend.global.common.base.BaseEntity;
 import com.prography.backend.global.common.enums.DepositType;
 import jakarta.persistence.*;
 import lombok.*;

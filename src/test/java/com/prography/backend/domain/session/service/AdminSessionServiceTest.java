@@ -17,6 +17,7 @@ import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
 import com.prography.backend.global.support.CurrentCohortProvider;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,19 +34,20 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
-import static com.prography.backend.support.TestFixtures.attendance;
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.cohortMember;
-import static com.prography.backend.support.TestFixtures.createSessionRequest;
-import static com.prography.backend.support.TestFixtures.member;
-import static com.prography.backend.support.TestFixtures.qrCode;
-import static com.prography.backend.support.TestFixtures.session;
-import static com.prography.backend.support.TestFixtures.updateSessionRequest;
+import static com.prography.backend.global.support.TestFixtures.attendance;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.cohortMember;
+import static com.prography.backend.global.support.TestFixtures.createSessionRequest;
+import static com.prography.backend.global.support.TestFixtures.member;
+import static com.prography.backend.global.support.TestFixtures.qrCode;
+import static com.prography.backend.global.support.TestFixtures.session;
+import static com.prography.backend.global.support.TestFixtures.updateSessionRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,8 +66,16 @@ class AdminSessionServiceTest {
     @Mock
     private CurrentCohortProvider currentCohortProvider;
 
+    @Mock
+    private Clock clock;
+
     @InjectMocks
     private AdminSessionService adminSessionService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(clock.instant()).thenAnswer(ignored -> Instant.now());
+    }
 
     @Test
     void 일정생성시_세션과_QR이_함께생성된다() {

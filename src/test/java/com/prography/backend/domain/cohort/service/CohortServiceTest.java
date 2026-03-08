@@ -27,12 +27,12 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
 
-import static com.prography.backend.support.TestFixtures.cohort;
-import static com.prography.backend.support.TestFixtures.cohortMember;
-import static com.prography.backend.support.TestFixtures.depositHistory;
-import static com.prography.backend.support.TestFixtures.member;
-import static com.prography.backend.support.TestFixtures.part;
-import static com.prography.backend.support.TestFixtures.team;
+import static com.prography.backend.global.support.TestFixtures.cohort;
+import static com.prography.backend.global.support.TestFixtures.cohortMember;
+import static com.prography.backend.global.support.TestFixtures.depositHistory;
+import static com.prography.backend.global.support.TestFixtures.member;
+import static com.prography.backend.global.support.TestFixtures.part;
+import static com.prography.backend.global.support.TestFixtures.team;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
