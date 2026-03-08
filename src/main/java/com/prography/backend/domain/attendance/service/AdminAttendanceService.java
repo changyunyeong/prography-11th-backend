@@ -3,6 +3,7 @@ package com.prography.backend.domain.attendance.service;
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.dto.AttendanceResponseDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
+import com.prography.backend.domain.attendance.policy.AttendancePenaltyPolicy;
 import com.prography.backend.domain.attendance.repository.AttendanceRepository;
 import com.prography.backend.domain.cohort.entity.CohortMember;
 import com.prography.backend.domain.cohort.repository.CohortMemberRepository;
@@ -30,9 +31,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminAttendanceService {
 
-    private static final int ABSENT_PENALTY = 10_000;
-    private static final int LATE_PENALTY_PER_MINUTE = 500;
-    private static final int MAX_LATE_PENALTY = 10_000;
     private static final int EXCUSE_LIMIT = 3;
 
     private final AttendanceRepository attendanceRepository;
@@ -41,6 +39,7 @@ public class AdminAttendanceService {
     private final CohortMemberRepository cohortMemberRepository;
     private final CurrentCohortProvider currentCohortProvider;
     private final DepositService depositService;
+    private final AttendancePenaltyPolicy attendancePenaltyPolicy;
 
     public AttendanceResponseDTO.AttendanceResultDTO registerAttendance(AttendanceRequestDTO.RegisterAttendanceRequestDTO request) {
         // 일정/회원 존재 검증
@@ -74,8 +73,8 @@ public class AdminAttendanceService {
         // ABSENT → 10,000원
         // LATE → min(lateMinutes × 500, 10,000)원
         // EXCUSED → 0원
-        Integer lateMinutes = resolveLateMinutes(status, request.getLateMinutes());
-        int penaltyAmount = calculatePenaltyAmount(status, lateMinutes);
+        Integer lateMinutes = attendancePenaltyPolicy.normalizeLateMinutes(status, request.getLateMinutes());
+        int penaltyAmount = attendancePenaltyPolicy.calculatePenaltyAmount(status, lateMinutes);
 
         Attendance attendance = Attendance.builder()
                 .session(session)
@@ -127,9 +126,9 @@ public class AdminAttendanceService {
             }
         }
 
-        Integer newLateMinutes = resolveLateMinutes(newStatus, request.getLateMinutes());
+        Integer newLateMinutes = attendancePenaltyPolicy.normalizeLateMinutes(newStatus, request.getLateMinutes());
         int oldPenalty = attendance.getPenaltyAmount();
-        int newPenalty = calculatePenaltyAmount(newStatus, newLateMinutes);
+        int newPenalty = attendancePenaltyPolicy.calculatePenaltyAmount(newStatus, newLateMinutes);
         int penaltyDiff = newPenalty - oldPenalty;
 
         if (penaltyDiff > 0) {
@@ -232,30 +231,6 @@ public class AdminAttendanceService {
 
         List<Attendance> attendances = attendanceRepository.findAllBySessionIdOrderByCheckedAtAsc(sessionId);
         return AttendanceResponseDTO.SessionAttendanceDetailDTO.from(session, attendances);
-    }
-
-    private Integer resolveLateMinutes(AttendanceStatus status, Integer lateMinutes) {
-        if (status != AttendanceStatus.LATE) {
-            return null;
-        }
-
-        if (lateMinutes == null || lateMinutes < 0) {
-            throw new ApiException(ErrorCode.INVALID_INPUT);
-        }
-
-        return lateMinutes;
-    }
-
-    private int calculatePenaltyAmount(AttendanceStatus status, Integer lateMinutes) {
-        if (status == AttendanceStatus.PRESENT || status == AttendanceStatus.EXCUSED) {
-            return 0;
-        }
-        if (status == AttendanceStatus.ABSENT) {
-            return ABSENT_PENALTY;
-        }
-
-        long latePenalty = (long) lateMinutes * LATE_PENALTY_PER_MINUTE;
-        return (int) Math.min(latePenalty, MAX_LATE_PENALTY);
     }
 
     private String createPenaltyDescription(AttendanceStatus status, int penaltyAmount) {

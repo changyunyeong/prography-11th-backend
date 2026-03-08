@@ -3,6 +3,7 @@ package com.prography.backend.domain.attendance.service;
 import com.prography.backend.domain.attendance.dto.AttendanceRequestDTO;
 import com.prography.backend.domain.attendance.dto.AttendanceResponseDTO;
 import com.prography.backend.domain.attendance.entity.Attendance;
+import com.prography.backend.domain.attendance.policy.AttendancePenaltyPolicy;
 import com.prography.backend.domain.attendance.repository.AttendanceRepository;
 import com.prography.backend.domain.cohort.entity.Cohort;
 import com.prography.backend.domain.cohort.entity.CohortMember;
@@ -20,14 +21,17 @@ import com.prography.backend.global.common.enums.MemberStatus;
 import com.prography.backend.global.common.enums.SessionStatus;
 import com.prography.backend.global.common.error.ApiException;
 import com.prography.backend.global.common.error.ErrorCode;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,6 +53,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -70,8 +75,19 @@ class AttendanceServiceTest {
     @Mock
     private DepositService depositService;
 
+    @Mock
+    private Clock clock;
+
+    @Spy
+    private AttendancePenaltyPolicy attendancePenaltyPolicy = new AttendancePenaltyPolicy();
+
     @InjectMocks
     private AttendanceService attendanceService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(clock.instant()).thenAnswer(ignored -> Instant.now());
+    }
 
     @Test
     void QR출석체크시_QR이유효하지않으면_QR_INVALID_예외() {
